@@ -1,0 +1,3192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Календарь — Мой календарь</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <style>
+    /*
+    ============================================================
+    БЛОК 1. ОФОРМЛЕНИЕ
+
+    Основные цвета можно изменить в :root.
+    Макет автоматически перестраивается для телефона.
+    ============================================================
+    */
+
+    :root {
+      color-scheme: light;
+      --background: #efc6ee;
+      --surface: hsl(196, 57%, 82%);
+      --text: #29334b;
+      --muted: #768198;
+      --border: #e3e8f2;
+      --primary: #596fca;
+      --primary-light: #eef1ff;
+      --danger: #b64c60;
+      --warning: #9a7137;
+      --control: #ffffff;
+      --outside: #fafbfe;
+      --outside-text: #a6afbf;
+      --selected: #eef1ff;
+      --chip: #f0f2f8;
+      --hint-bg: #f3f5fa;
+      --warning-bg: #fff6e7;
+      --upload-border: #c4cee8;
+      --upload-bg: #f8faff;
+      --source-bg: #f6f7fa;
+      --backdrop: #26324c66;
+      --toast-bg: #29334b;
+      --toast-text: #ffffff;
+      --radius: 16px;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --background: #141924;
+      --surface: #1e2433;
+      --text: #e7ebf5;
+      --muted: #96a2b8;
+      --border: #323a4e;
+      --primary: #667ee0;
+      --primary-light: #2c3554;
+      --danger: #e08a9a;
+      --warning: #e3b56a;
+      --control: #171d2a;
+      --outside: #171c28;
+      --outside-text: #6d7890;
+      --selected: #2c3554;
+      --chip: #171d2a;
+      --hint-bg: #171d2a;
+      --warning-bg: #3a2e1c;
+      --upload-border: #3d4a68;
+      --upload-bg: #171d2a;
+      --source-bg: #171d2a;
+      --backdrop: #07090f99;
+      --toast-bg: #e7ebf5;
+      --toast-text: #141924;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Arial, sans-serif;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--control);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--primary-light);
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    button.primary {
+      color: white;
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    button.danger {
+      color: var(--danger);
+    }
+
+    button.active {
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    a.home-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--control);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    a.home-link:hover {
+      background: var(--primary-light);
+    }
+
+    .welcome-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .welcome-banner p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      background: var(--control);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.6;
+    }
+
+    input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--primary);
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      font-size: 13px;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: clamp(24px, 4vw, 34px);
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 21px;
+    }
+
+    h3 {
+      font-size: 16px;
+    }
+
+    small, .muted {
+      color: var(--muted);
+    }
+
+    .app {
+      max-width: 1250px;
+      margin: auto;
+      padding: 28px 20px;
+    }
+
+    .header, .toolbar, .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header, .toolbar {
+      justify-content: space-between;
+    }
+
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+
+    .navigation {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 20px;
+    }
+
+    .calendar-card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      padding: 18px;
+    }
+
+    .toolbar h2 {
+      margin: 0;
+      text-transform: capitalize;
+    }
+
+    .weekdays, .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .weekdays {
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .day {
+      min-width: 0;
+      min-height: 105px;
+      padding: 7px;
+      border: 0;
+      border-radius: 0;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      overflow: hidden;
+    }
+
+    .day:nth-child(7n) {
+      border-right: 0;
+    }
+
+    .day.outside {
+      background: var(--outside);
+      color: var(--outside-text);
+    }
+
+    .day.selected {
+      background: var(--selected);
+    }
+
+    .day-number {
+      display: inline-grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      font-size: 12px;
+    }
+
+    .day.today .day-number {
+      color: white;
+      background: var(--primary);
+    }
+
+    .event-chip {
+      display: block;
+      margin-top: 5px;
+      padding: 4px;
+      border-left: 3px solid var(--event-color);
+      border-radius: 4px;
+      background: var(--chip);
+      color: var(--text);
+      font-size: 10px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .entry:last-child {
+      border-bottom: 0;
+    }
+
+    .entry-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .entry-main button {
+      padding: 0;
+      border: 0;
+      background: none;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .entry-main small {
+      display: block;
+      margin-top: 6px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      margin-top: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      opacity: .55;
+    }
+
+    .empty {
+      padding: 28px 10px;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .hint {
+      padding: 13px;
+      border-radius: 9px;
+      background: var(--hint-bg);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .warning {
+      color: var(--warning);
+      background: var(--warning-bg);
+    }
+
+    .upload {
+      border: 2px dashed var(--upload-border);
+      border-radius: 14px;
+      padding: 25px;
+      background: var(--upload-bg);
+      margin-bottom: 18px;
+    }
+
+    .upload input {
+      background: var(--control);
+    }
+
+    .draft {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+
+    .draft-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .draft-content p {
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+
+    .source {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 200px;
+      overflow: auto;
+      padding: 12px;
+      background: var(--source-bg);
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .status {
+      white-space: pre-wrap;
+      color: var(--primary);
+      font-size: 13px;
+      line-height: 1.8;
+      margin: 15px 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .error {
+      color: var(--danger);
+      line-height: 1.7;
+      font-size: 13px;
+    }
+
+    dialog {
+      width: min(640px, calc(100% - 24px));
+      max-height: 92vh;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    dialog::backdrop {
+      background: var(--backdrop);
+    }
+
+    .dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .dialog-head h2 {
+      margin: 0;
+    }
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      margin-top: 10px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 92%;
+      padding: 14px 20px;
+      border-radius: 10px;
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      font-size: 13px;
+      z-index: 100;
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        padding: 20px 10px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .calendar-card {
+        padding: 0;
+      }
+
+      .day {
+        min-height: 85px;
+        padding: 4px;
+      }
+
+      .event-chip {
+        font-size: 9px;
+      }
+
+      .toolbar {
+        padding: 14px;
+      }
+
+      .toolbar h2 {
+        font-size: 17px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .full {
+        grid-column: auto;
+      }
+
+      .draft {
+        flex-wrap: wrap;
+      }
+
+      button, a.home-link {
+        padding: 9px 11px;
+        font-size: 13px;
+      }
+
+      .welcome-banner {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .navigation {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .navigation button {
+        width: 100%;
+      }
+    }
+  </style>
+  <script>
+    try {
+      var savedTheme = localStorage.getItem("my-calendar-theme");
+      if (savedTheme === "dark" || savedTheme === "light") {
+        document.documentElement.dataset.theme = savedTheme;
+      }
+    } catch (error) {
+      // Без хранилища останется светлая тема.
+    }
+  </script>
+</head>
+
+<body>
+  <!--
+  ============================================================
+  БЛОК 2. HTML-СТРУКТУРА
+
+  JavaScript наполняет #app данными.
+  dialog используется для создания и редактирования записей.
+  ============================================================
+  -->
+
+  <main class="app" id="app"></main>
+  <dialog id="editorDialog"></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    /*
+    ============================================================
+    БЛОК 3. НАСТРОЙКИ И ХРАНЕНИЕ
+
+    Записи сохраняются в localStorage текущего браузера.
+    Если редактор блокирует хранилище, приложение продолжит
+    работать, но предупредит об отсутствии сохранения.
+
+    Для переноса данных используйте JSON-копию.
+    ============================================================
+    */
+
+    const STORAGE_KEY = "my-calendar-single-file-v1";
+
+    const TYPES = [
+      "event",
+      "task",
+      "webinar",
+      "activation",
+      "appointment"
+    ];
+
+    const COLORS = {
+      event: "#6983c9",
+      task: "#c6a05d",
+      webinar: "#a18ac8",
+      activation: "#70a38b",
+      appointment: "#cc889a"
+    };
+
+    const ZONES = [
+      "America/New_York",
+      "America/Chicago",
+      "America/Denver",
+      "America/Los_Angeles",
+      "Europe/Moscow",
+      "Europe/London",
+      "Europe/Paris",
+      "Asia/Dubai",
+      "Asia/Shanghai",
+      "UTC"
+    ];
+
+    let state = {
+      language: "ru",
+      zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+      entries: [],
+      drafts: []
+    };
+
+    let storageAvailable = true;
+
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "null"
+      );
+
+      if (
+        saved &&
+        Array.isArray(saved.entries) &&
+        Array.isArray(saved.drafts)
+      ) {
+        state = { ...state, ...saved };
+      }
+    } catch {
+      storageAvailable = false;
+    }
+
+    let today = new Date();
+    let currentMonth = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1
+    );
+
+    let selectedDate = dateKey(today);
+    let currentPage = "calendar";
+    let categoryFilter = "";
+    let importBusy = false;
+    let importStatus = "";
+    let editing = null;
+    let ocrWorker = null;
+    let toastTimer = null;
+
+    const sourceImages = new Map();
+    const scriptPromises = new Map();
+    const deliveredReminders = new Set();
+
+    const app = document.getElementById("app");
+    const dialog = document.getElementById("editorDialog");
+
+    /*
+    ============================================================
+    БЛОК 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    ============================================================
+    */
+
+    function tr(ru, en) {
+      return state.language === "ru" ? ru : en;
+    }
+
+    function locale() {
+      return state.language === "ru" ? "ru-RU" : "en-US";
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(
+        /[&<>"']/g,
+        character => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        }[character])
+      );
+    }
+
+    function pad(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function dateKey(date) {
+      return [
+        date.getFullYear(),
+        pad(date.getMonth() + 1),
+        pad(date.getDate())
+      ].join("-");
+    }
+
+    function localDate(value) {
+      return new Date(value + "T12:00:00");
+    }
+
+    function validDate(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) {
+        return false;
+      }
+
+      const year = Number(value.slice(0, 4));
+
+      // Явная граница этой версии календаря.
+      return (
+        year >= 1900 &&
+        year <= 2099 &&
+        dateKey(localDate(value)) === value
+      );
+    }
+
+    function validTime(value) {
+      return /^([01]\d|2[0-3]):[0-5]\d$/.test(value || "");
+    }
+
+    function validZone(zone) {
+      if (!zone) return false;
+
+      try {
+        new Intl.DateTimeFormat("en", { timeZone: zone });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function createId() {
+      if (globalThis.crypto?.randomUUID) {
+        return crypto.randomUUID();
+      }
+
+      return (
+        Date.now().toString(36) +
+        "-" +
+        Math.random().toString(36).slice(2)
+      );
+    }
+
+    function formatDate(value, includeYear = false) {
+      if (!validDate(value)) return "—";
+
+      return localDate(value).toLocaleDateString(locale(), {
+        day: "numeric",
+        month: "long",
+        ...(includeYear ? { year: "numeric" } : {})
+      });
+    }
+
+    function typeName(type) {
+      return {
+        event: tr("Событие", "Event"),
+        task: tr("Задача", "Task"),
+        webinar: tr("Вебинар", "Webinar"),
+        activation: tr("Активация", "Activation"),
+        appointment: tr("Встреча", "Appointment")
+      }[type] || type;
+    }
+
+    function repeatName(repeat) {
+      return {
+        none: tr("Не повторять", "Does not repeat"),
+        daily: tr("Каждый день", "Every day"),
+        weekly: tr("Каждую неделю", "Every week"),
+        monthly: tr("Каждый месяц", "Every month")
+      }[repeat];
+    }
+
+    function showToast(message) {
+      const element = document.getElementById("toast");
+      element.textContent = message;
+      element.style.display = "block";
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(() => {
+        element.style.display = "none";
+      }, 6500);
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        storageAvailable = true;
+      } catch {
+        storageAvailable = false;
+
+        showToast(tr(
+          "Браузер не сохранил данные. Скачайте JSON-копию.",
+          "The browser could not save data. Download a JSON backup."
+        ));
+      }
+    }
+
+    function downloadFile(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = filename;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+
+    /*
+    ============================================================
+    БЛОК 5. ПОВТОРЕНИЯ И ЧАСОВЫЕ ПОЯСА
+
+    Дата во встроенном календаре относится к часовому поясу
+    самой записи. Все события не переводятся в один общий пояс.
+
+    Ежемесячная запись на 31-е пропускает месяцы без 31-го.
+    ============================================================
+    */
+
+    function occursOn(entry, day) {
+      if (!validDate(entry.date) || day < entry.date) return false;
+      if (entry.until && day > entry.until) return false;
+      if (day === entry.date) return true;
+
+      const difference = Math.round(
+        (localDate(day) - localDate(entry.date)) / 86400000
+      );
+
+      if (entry.repeat === "daily") return true;
+      if (entry.repeat === "weekly") return difference % 7 === 0;
+
+      if (entry.repeat === "monthly") {
+        return (
+          localDate(day).getDate() ===
+          localDate(entry.date).getDate()
+        );
+      }
+
+      return false;
+    }
+
+    function entriesOn(day) {
+      return state.entries
+        .filter(entry =>
+          (!categoryFilter || entry.type === categoryFilter) &&
+          occursOn(entry, day)
+        )
+        .sort((a, b) =>
+          (a.time || "00:00").localeCompare(b.time || "00:00")
+        );
+    }
+
+    /*
+    Перевод местного времени записи в UTC.
+
+    Если время попало в пропущенный или повторённый час при
+    сезонном переводе часов, требуется ручное уточнение.
+    */
+
+    function toUTC(date, time, zone) {
+      if (
+        !validDate(date) ||
+        !validTime(time) ||
+        !validZone(zone)
+      ) {
+        throw new Error("Invalid date, time or time zone");
+      }
+
+      const target = Date.parse(date + "T" + time + ":00Z");
+
+      const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: zone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23"
+      });
+
+      function wallTime(timestamp) {
+        const parts = Object.fromEntries(
+          formatter.formatToParts(new Date(timestamp))
+            .map(part => [part.type, part.value])
+        );
+
+        return Date.parse(
+          `${parts.year}-${parts.month}-${parts.day}` +
+          `T${parts.hour}:${parts.minute}:${parts.second}Z`
+        );
+      }
+
+      const offsets = new Set(
+        [-86400000, 0, 86400000].map(difference => {
+          const timestamp = target + difference;
+          return wallTime(timestamp) - timestamp;
+        })
+      );
+
+      const matches = [...offsets]
+        .map(offset => target - offset)
+        .filter(timestamp => wallTime(timestamp) === target);
+
+      if (matches.length !== 1) {
+        throw new Error("Ambiguous or nonexistent local time");
+      }
+
+      return new Date(matches[0]);
+    }
+
+    function missingFields(entry) {
+      const errors = [];
+
+      if (!String(entry.title || "").trim()) {
+        errors.push(tr("название", "title"));
+      }
+
+      if (!validDate(entry.date)) {
+        errors.push(tr(
+          "дата и год в диапазоне 1900–2099",
+          "date and year in the 1900–2099 range"
+        ));
+      }
+
+      if (!entry.allDay && !validTime(entry.time)) {
+        errors.push(tr(
+          "время или отметка «Весь день»",
+          "time or the “All day” option"
+        ));
+      }
+
+      if (!validZone(entry.zone)) {
+        errors.push(tr("часовой пояс", "time zone"));
+      }
+
+      if (
+        !entry.allDay &&
+        entry.end &&
+        (!validTime(entry.end) || entry.end <= entry.time)
+      ) {
+        errors.push(tr(
+          "окончание позже начала в тот же день",
+          "end time after start on the same day"
+        ));
+      }
+
+      if (
+        entry.until &&
+        (!validDate(entry.until) || entry.until < entry.date)
+      ) {
+        errors.push(tr(
+          "дата окончания повторений",
+          "recurrence end date"
+        ));
+      }
+
+      if (
+        validDate(entry.date) &&
+        validTime(entry.time) &&
+        validZone(entry.zone) &&
+        !entry.allDay
+      ) {
+        try {
+          toUTC(entry.date, entry.time, entry.zone);
+
+          if (entry.end) {
+            toUTC(entry.date, entry.end, entry.zone);
+          }
+        } catch {
+          errors.push(tr(
+            "время при переходе часов — выберите однозначное",
+            "time during a clock change — choose an unambiguous time"
+          ));
+        }
+      }
+
+      return errors;
+    }
+
+    function isDuplicate(entry) {
+      return state.entries.some(existing =>
+        existing.id !== entry.id &&
+        existing.title.trim().toLowerCase() ===
+          entry.title.trim().toLowerCase() &&
+        existing.date === entry.date &&
+        existing.time === entry.time &&
+        existing.zone === entry.zone
+      );
+    }
+
+    /*
+    ============================================================
+    БЛОК 6. ГЛАВНЫЙ ИНТЕРФЕЙС
+    ============================================================
+    */
+
+    function render() {
+      document.documentElement.lang = state.language;
+
+      app.innerHTML = `
+        <header class="header">
+          <div>
+            <h1>${tr("Мой календарь", "My calendar")}</h1>
+            <p class="subtitle">
+              ${tr(
+                "События, задачи и практики — в одном месте.",
+                "Events, tasks and practices — all in one place."
+              )}
+            </p>
+          </div>
+
+          <div class="row">
+            <a class="home-link" href="./index.html">
+              ${tr("На главную", "Home")}
+            </a>
+
+            <button type="button" onclick="toggleTheme()"
+              aria-pressed="${currentTheme() === "dark" ? "true" : "false"}"
+              aria-label="${currentTheme() === "dark"
+                ? tr("Включить светлую тему", "Switch to light theme")
+                : tr("Включить тёмную тему", "Switch to dark theme")}">
+              ${currentTheme() === "dark"
+                ? tr("Светлая", "Light")
+                : tr("Тёмная", "Dark")}
+            </button>
+
+            <button onclick="setLanguage('ru')"
+              class="${state.language === "ru" ? "active" : ""}">
+              RU
+            </button>
+
+            <button onclick="setLanguage('en')"
+              class="${state.language === "en" ? "active" : ""}">
+              EN
+            </button>
+
+            <button class="primary" onclick="openEditor()">
+              + ${tr("Создать", "Create")}
+            </button>
+          </div>
+        </header>
+
+        <nav class="navigation">
+          ${[
+            ["calendar", tr("Календарь", "Calendar")],
+            ["tasks", tr("Задачи", "Tasks")],
+            ["import", tr("Импорт", "Import")],
+            ["settings", tr("Настройки", "Settings")]
+          ].map(([page, label]) => `
+            <button
+              class="${currentPage === page ? "active" : ""}"
+              onclick="setPage('${page}')">
+              ${label}
+              ${page === "import" && state.drafts.length
+                ? ` (${state.drafts.length})`
+                : ""}
+            </button>
+          `).join("")}
+
+          <button onclick="exportICS()">
+            ${tr("Экспорт .ics", "Export .ics")}
+          </button>
+        </nav>
+
+        ${!storageAvailable ? `
+          <p class="hint warning">
+            ${tr(
+              "Сохранение в браузере недоступно. Скачивайте JSON-копии.",
+              "Browser storage is unavailable. Download JSON backups."
+            )}
+          </p>
+        ` : ""}
+
+        ${state.entries.length === 0 ? `
+          <section class="card welcome-banner">
+            <p>
+              ${tr(
+                "Календарь пока пуст. Создайте свою запись или откройте готовые примеры, чтобы посмотреть месяц, задачи и напоминания.",
+                "The calendar is empty. Create your own entry or open sample ones to see the month, tasks and reminders."
+              )}
+            </p>
+            <button onclick="loadExamples()">
+              ${tr("Показать примеры", "Show samples")}
+            </button>
+          </section>
+        ` : ""}
+
+        ${
+          currentPage === "calendar" ? renderCalendar() :
+          currentPage === "tasks" ? renderTasks() :
+          currentPage === "import" ? renderImport() :
+          renderSettings()
+        }
+      `;
+    }
+
+    function loadExamples() {
+      const zone = validZone(state.zone) ? state.zone : "UTC";
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      const samples = [
+        {
+          title: tr("План на день", "Plan for the day"),
+          type: "appointment",
+          date: dateKey(today),
+          time: "10:00",
+          end: "11:00",
+          allDay: false,
+          repeat: "none",
+          until: "",
+          reminders: [30],
+          description: tr(
+            "Пример встречи на сегодня. Её можно изменить или удалить.",
+            "A sample meeting for today. You can edit or delete it."
+          )
+        },
+        {
+          title: tr("Разобрать задачи", "Review tasks"),
+          type: "task",
+          date: dateKey(tomorrow),
+          time: "18:00",
+          end: "",
+          allDay: false,
+          repeat: "none",
+          until: "",
+          reminders: [60],
+          description: tr(
+            "Пример задачи. Отметьте её выполненной в списке или в календаре.",
+            "A sample task. Mark it complete in the list or on the calendar."
+          )
+        },
+        {
+          title: tr("Еженедельная практика", "Weekly practice"),
+          type: "activation",
+          date: dateKey(today),
+          time: "",
+          end: "",
+          allDay: true,
+          repeat: "weekly",
+          until: "",
+          reminders: [1440],
+          description: tr(
+            "Пример повторения каждую неделю. Изменение действует на всю серию.",
+            "A sample weekly repeat. A change applies to the whole series."
+          )
+        }
+      ];
+
+      let added = 0;
+
+      for (const sample of samples) {
+        const entry = {
+          id: createId(),
+          url: "",
+          source: "",
+          raw: "",
+          done: [],
+          selected: true,
+          zone,
+          ...sample
+        };
+
+        if (!missingFields(entry).length && !isDuplicate(entry)) {
+          state.entries.push(entry);
+          added += 1;
+        }
+      }
+
+      if (!added) {
+        showToast(tr(
+          "Примеры уже есть в календаре.",
+          "These samples are already in the calendar."
+        ));
+        return;
+      }
+
+      saveState();
+      currentPage = "calendar";
+      goToday();
+
+      showToast(tr(
+        "Примеры добавлены. Их можно править и удалять.",
+        "Samples added. You can edit and delete them."
+      ));
+    }
+
+    const THEME_KEY = "my-calendar-theme";
+
+    function currentTheme() {
+      return document.documentElement.dataset.theme === "dark"
+        ? "dark"
+        : "light";
+    }
+
+    function toggleTheme() {
+      const next = currentTheme() === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+        // Переключение применится до закрытия страницы.
+      }
+
+      render();
+    }
+
+    function setLanguage(language) {
+      state.language = language;
+      saveState();
+      render();
+    }
+
+    function setPage(page) {
+      currentPage = page;
+      render();
+    }
+
+    function changeMonth(offset) {
+      currentMonth = new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth() + offset,
+        1
+      );
+
+      render();
+    }
+
+    function goToday() {
+      const date = new Date();
+
+      selectedDate = dateKey(date);
+      currentMonth = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        1
+      );
+
+      render();
+    }
+
+    function selectDay(day) {
+      selectedDate = day;
+      render();
+    }
+
+    function setFilter(value) {
+      categoryFilter = value;
+      render();
+    }
+
+    function renderCalendar() {
+      const start = new Date(currentMonth);
+      start.setDate(1 - ((start.getDay() + 6) % 7));
+
+      const cells = [];
+
+      for (let index = 0; index < 42; index++) {
+        const date = new Date(start);
+        date.setDate(date.getDate() + index);
+
+        const key = dateKey(date);
+        const entries = entriesOn(key);
+
+        cells.push(`
+          <button
+            class="day
+              ${date.getMonth() !== currentMonth.getMonth()
+                ? "outside" : ""}
+              ${key === selectedDate ? "selected" : ""}
+              ${key === dateKey(new Date()) ? "today" : ""}"
+            onclick="selectDay('${key}')"
+            aria-label="${escapeHTML(key)}">
+
+            <span class="day-number">${date.getDate()}</span>
+
+            ${entries.slice(0, 3).map(entry => `
+              <span class="event-chip"
+                style="--event-color:${COLORS[entry.type]}">
+                ${entry.allDay ? "" : escapeHTML(entry.time) + " "}
+                ${escapeHTML(entry.title)}
+              </span>
+            `).join("")}
+
+            ${entries.length > 3
+              ? `<small>+${entries.length - 3}</small>`
+              : ""}
+          </button>
+        `);
+      }
+
+      return `
+        <div class="layout">
+          <section class="card calendar-card">
+            <div class="toolbar">
+              <div class="row">
+                <button onclick="changeMonth(-1)"
+                  aria-label="${tr("Предыдущий месяц", "Previous month")}">
+                  ‹
+                </button>
+
+                <h2>
+                  ${currentMonth.toLocaleDateString(locale(), {
+                    month: "long",
+                    year: "numeric"
+                  })}
+                </h2>
+
+                <button onclick="changeMonth(1)"
+                  aria-label="${tr("Следующий месяц", "Next month")}">
+                  ›
+                </button>
+              </div>
+
+              <button onclick="goToday()">
+                ${tr("Сегодня", "Today")}
+              </button>
+            </div>
+
+            <div style="padding:0 18px 14px">
+              <select onchange="setFilter(this.value)"
+                aria-label="${tr("Категория", "Category")}">
+                <option value="">
+                  ${tr("Все категории", "All categories")}
+                </option>
+                ${TYPES.map(type => `
+                  <option value="${type}"
+                    ${categoryFilter === type ? "selected" : ""}>
+                    ${typeName(type)}
+                  </option>
+                `).join("")}
+              </select>
+            </div>
+
+            <div class="weekdays">
+              ${tr(
+                ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"],
+                ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+              ).map(day => `<span>${day}</span>`).join("")}
+            </div>
+
+            <div class="calendar-grid">${cells.join("")}</div>
+          </section>
+
+          <aside class="card">
+            <h2>${formatDate(selectedDate)}</h2>
+
+            ${entriesOn(selectedDate).length
+              ? entriesOn(selectedDate)
+                  .map(entry => renderEntry(entry, selectedDate))
+                  .join("")
+              : `
+                <div class="empty">
+                  ${tr(
+                    "На этот день пока ничего не запланировано.",
+                    "Nothing planned for this day yet."
+                  )}
+                </div>
+              `
+            }
+
+            <button class="primary"
+              style="width:100%;margin-top:18px"
+              onclick="openEditor()">
+              + ${tr("Добавить запись", "Add an entry")}
+            </button>
+
+            <p class="hint" style="margin-top:18px">
+              ${tr(
+                "Даты и время показаны в часовом поясе каждой записи.",
+                "Dates and times are shown in each entry’s time zone."
+              )}
+            </p>
+          </aside>
+        </div>
+      `;
+    }
+
+    function renderEntry(entry, day) {
+      const done = (entry.done || []).includes(day);
+
+      return `
+        <div class="entry">
+          <span class="dot"
+            style="background:${COLORS[entry.type]}"></span>
+
+          <div class="entry-main">
+            <button
+              class="${done ? "completed" : ""}"
+              onclick="openEditor('${entry.id}')">
+              ${escapeHTML(entry.title)}
+            </button>
+
+            <small>
+              ${entry.allDay
+                ? tr("Весь день", "All day")
+                : escapeHTML(entry.time) +
+                  (entry.end ? " – " + escapeHTML(entry.end) : "")
+              }
+              · ${escapeHTML(entry.zone)}
+              ${entry.repeat !== "none" ? " · ↻" : ""}
+            </small>
+          </div>
+
+          ${entry.type === "task" ? `
+            <input type="checkbox"
+              ${done ? "checked" : ""}
+              aria-label="${tr("Выполнено", "Completed")}"
+              onchange="completeTask(
+                '${entry.id}', '${day}', this.checked
+              )">
+          ` : ""}
+        </div>
+      `;
+    }
+
+    function renderTasks() {
+      const tasks = state.entries.filter(
+        entry => entry.type === "task"
+      );
+
+      return `
+        <section class="card">
+          <h2>${tr("Мои задачи", "My tasks")}</h2>
+
+          <p class="hint">
+            ${tr(
+              "Здесь показана первая дата каждой задачи. Отдельные повторения отмечайте выполненными в календаре.",
+              "The first date of each task is shown here. Complete individual occurrences in the calendar."
+            )}
+          </p>
+
+          ${tasks.length
+            ? tasks.map(entry => `
+                <p class="muted" style="margin:20px 0 0">
+                  ${formatDate(entry.date, true)}
+                  · ${repeatName(entry.repeat)}
+                </p>
+                ${renderEntry(entry, entry.date)}
+              `).join("")
+            : `<p class="empty">${tr(
+                "Пока нет задач.",
+                "No tasks yet."
+              )}</p>`
+          }
+        </section>
+      `;
+    }
+
+    function completeTask(id, day, checked) {
+      const entry = state.entries.find(item => item.id === id);
+      if (!entry) return;
+
+      entry.done = entry.done || [];
+
+      entry.done = checked
+        ? [...new Set([...entry.done, day])]
+        : entry.done.filter(date => date !== day);
+
+      saveState();
+      render();
+    }
+
+    /*
+    ============================================================
+    БЛОК 7. РЕДАКТОР ЗАПИСЕЙ
+
+    Для импортированных записей отсутствующие поля остаются
+    пустыми. Для ручной записи используется выбранный день.
+    ============================================================
+    */
+
+    function openEditor(id = null, draft = false) {
+      const collection = draft ? state.drafts : state.entries;
+
+      const entry = collection.find(item => item.id === id) || {
+        id: createId(),
+        title: "",
+        type: currentPage === "tasks" ? "task" : "event",
+        date: selectedDate,
+        time: "",
+        end: "",
+        zone: state.zone,
+        allDay: false,
+        repeat: "none",
+        until: "",
+        reminders: [],
+        description: "",
+        url: "",
+        source: "",
+        raw: "",
+        done: []
+      };
+
+      editing = { entry, draft, existing: Boolean(id) };
+
+      dialog.innerHTML = `
+        <div class="dialog-head">
+          <h2>${draft
+            ? tr("Проверка записи", "Review entry")
+            : tr("Событие или задача", "Event or task")
+          }</h2>
+          <button type="button" onclick="dialog.close()"
+            aria-label="${tr("Закрыть", "Close")}">×</button>
+        </div>
+
+        <form id="entryForm">
+          <div class="form-grid">
+            <label class="full">
+              ${tr("Название", "Title")}
+              <input name="title" required maxlength="250"
+                value="${escapeHTML(entry.title)}">
+            </label>
+
+            <label>
+              ${tr("Категория", "Category")}
+              <select name="type">
+                ${TYPES.map(type => `
+                  <option value="${type}"
+                    ${entry.type === type ? "selected" : ""}>
+                    ${typeName(type)}
+                  </option>
+                `).join("")}
+              </select>
+            </label>
+
+            <label>
+              ${tr("Дата / дедлайн", "Date / deadline")}
+              <input name="date" type="date" required
+                min="1900-01-01" max="2099-12-31"
+                value="${escapeHTML(entry.date)}">
+            </label>
+
+            <label class="full checkbox-label">
+              <input name="allDay" type="checkbox"
+                ${entry.allDay ? "checked" : ""}
+                onchange="toggleTimeFields(this.checked)">
+              ${tr("Весь день / без точного времени", "All day")}
+            </label>
+
+            <label>
+              ${tr("Начало / время дедлайна", "Start / deadline time")}
+              <input name="time" type="time"
+                value="${escapeHTML(entry.time)}"
+                ${entry.allDay ? "disabled" : ""}>
+            </label>
+
+            <label>
+              ${tr("Окончание — необязательно", "End — optional")}
+              <input name="end" type="time"
+                value="${escapeHTML(entry.end)}"
+                ${entry.allDay ? "disabled" : ""}>
+            </label>
+
+            <label class="full">
+              ${tr("Часовой пояс", "Time zone")}
+              <input name="zone" list="zoneOptions" required
+                placeholder="America/New_York"
+                value="${escapeHTML(entry.zone)}">
+
+              <datalist id="zoneOptions">
+                ${ZONES.map(zone =>
+                  `<option value="${zone}">`
+                ).join("")}
+              </datalist>
+            </label>
+
+            <label>
+              ${tr("Повторение", "Repeat")}
+              <select name="repeat">
+                ${["none", "daily", "weekly", "monthly"].map(value => `
+                  <option value="${value}"
+                    ${entry.repeat === value ? "selected" : ""}>
+                    ${repeatName(value)}
+                  </option>
+                `).join("")}
+              </select>
+            </label>
+
+            <label>
+              ${tr("Повторять по — необязательно", "Repeat until — optional")}
+              <input name="until" type="date"
+                min="1900-01-01" max="2099-12-31"
+                value="${escapeHTML(entry.until)}">
+            </label>
+
+            <label class="full">
+              ${tr(
+                "Напоминания: за сколько минут, через запятую",
+                "Reminders: minutes before, separated by commas"
+              )}
+              <input name="reminders"
+                placeholder="60, 1440"
+                value="${entry.reminders.join(", ")}">
+
+              <small>${tr(
+                "60 = за час, 1440 = за день. Для «Весь день» отсчёт от 00:00.",
+                "60 = one hour, 1440 = one day. All-day reminders count from midnight."
+              )}</small>
+            </label>
+
+            <label class="full">
+              ${tr("Ссылка", "Link")}
+              <input name="url" type="url"
+                placeholder="https://"
+                value="${escapeHTML(entry.url)}">
+            </label>
+
+            <label class="full">
+              ${tr("Описание и условия", "Description and conditions")}
+              <textarea name="description">${escapeHTML(
+                entry.description
+              )}</textarea>
+            </label>
+
+            ${entry.raw ? `
+              <details class="full" open>
+                <summary>
+                  ${tr("Исходный текст", "Source text")}
+                  · ${escapeHTML(entry.source)}
+                </summary>
+
+                <pre class="source">${escapeHTML(entry.raw)}</pre>
+
+                ${sourceImages.has(entry.source) ? `
+                  <img class="preview-image"
+                    src="${sourceImages.get(entry.source)}"
+                    alt="${tr("Исходное изображение", "Source image")}">
+                ` : ""}
+              </details>
+            ` : ""}
+          </div>
+
+          <p class="hint">
+            ${tr(
+              "Изменения применяются ко всей серии повторений. Ежемесячное повторение пропускает месяцы без выбранного числа.",
+              "Changes apply to the whole recurring series. Monthly recurrence skips months without the selected day."
+            )}
+          </p>
+
+          <div class="error" id="formError" role="alert"></div>
+
+          <div class="actions">
+            ${id ? `
+              <button type="button" class="danger"
+                onclick="deleteEditingEntry()">
+                ${tr("Удалить", "Delete")}
+              </button>
+            ` : ""}
+
+            <button type="button" onclick="dialog.close()">
+              ${tr("Отмена", "Cancel")}
+            </button>
+
+            <button type="submit" class="primary">
+              ${draft
+                ? tr("Подтвердить данные", "Confirm details")
+                : tr("Сохранить", "Save")
+              }
+            </button>
+          </div>
+        </form>
+      `;
+
+      document.getElementById("entryForm")
+        .addEventListener("submit", saveEntry);
+
+      dialog.showModal();
+    }
+
+    function toggleTimeFields(disabled) {
+      const form = document.getElementById("entryForm");
+      form.elements.time.disabled = disabled;
+      form.elements.end.disabled = disabled;
+    }
+
+    function saveEntry(event) {
+      event.preventDefault();
+
+      const form = new FormData(event.target);
+      const errorElement = document.getElementById("formError");
+      const reminderText = String(form.get("reminders")).trim();
+
+      if (
+        reminderText &&
+        !/^\d+(\s*,\s*\d+)*$/.test(reminderText)
+      ) {
+        errorElement.textContent = tr(
+          "Укажите целые минуты через запятую.",
+          "Enter whole minutes separated by commas."
+        );
+        return;
+      }
+
+      const reminders = [...new Set(
+        reminderText
+          ? reminderText.split(",").map(Number)
+          : []
+      )];
+
+      if (
+        reminders.length > 5 ||
+        reminders.some(value => value > 525600)
+      ) {
+        errorElement.textContent = tr(
+          "Не более 5 напоминаний, каждое максимум за год.",
+          "Up to 5 reminders, each at most one year before."
+        );
+        return;
+      }
+
+      const allDay = form.has("allDay");
+
+      const entry = {
+        ...editing.entry,
+        title: String(form.get("title")).trim(),
+        type: form.get("type"),
+        date: form.get("date"),
+        time: allDay ? "" : form.get("time"),
+        end: allDay ? "" : form.get("end"),
+        allDay,
+        zone: String(form.get("zone")).trim(),
+        repeat: form.get("repeat"),
+        until: form.get("repeat") === "none"
+          ? "" : form.get("until"),
+        reminders,
+        description: String(form.get("description")),
+        url: String(form.get("url")),
+        selected: true
+      };
+
+      const errors = missingFields(entry);
+
+      if (errors.length) {
+        errorElement.textContent =
+          tr("Уточните: ", "Please clarify: ") +
+          errors.join(", ");
+        return;
+      }
+
+      if (isDuplicate(entry)) {
+        errorElement.textContent = tr(
+          "Такая запись уже есть в календаре.",
+          "This entry already exists in the calendar."
+        );
+        return;
+      }
+
+      const collection = editing.draft
+        ? state.drafts : state.entries;
+
+      const index = collection.findIndex(
+        item => item.id === entry.id
+      );
+
+      if (index >= 0) {
+        collection[index] = entry;
+      } else {
+        collection.push(entry);
+      }
+
+      saveState();
+      dialog.close();
+      render();
+
+      showToast(editing.draft
+        ? tr(
+            "Данные проверены. Теперь добавьте выбранные записи.",
+            "Details reviewed. Now add the selected entries."
+          )
+        : tr("Запись сохранена.", "Entry saved.")
+      );
+    }
+
+    function deleteEditingEntry() {
+      if (!confirm(tr(
+        "Удалить запись и все её повторения?",
+        "Delete this entry and all its occurrences?"
+      ))) return;
+
+      const key = editing.draft ? "drafts" : "entries";
+
+      state[key] = state[key].filter(
+        item => item.id !== editing.entry.id
+      );
+
+      saveState();
+      dialog.close();
+      render();
+    }
+
+    /*
+    ============================================================
+    БЛОК 8. РАСПОЗНАВАНИЕ ДАТ В ТЕКСТЕ
+
+    Это извлечение по правилам, а не универсальная ИИ-модель.
+
+    Поддерживаются:
+    - 12 ноября 2026
+    - November 12, 2026
+    - 12 November 2026
+    - 12.11.2026
+    - 2026-11-12
+
+    Неоднозначные даты со слешами и время AM/PM оставляются
+    для ручного уточнения. Недостающий год не подставляется.
+    ============================================================
+    */
+
+    const RU_MONTHS = [
+      "январ", "феврал", "март", "апрел", "мая", "июн",
+      "июл", "август", "сентябр", "октябр", "ноябр", "декабр"
+    ];
+
+    const EN_MONTHS = [
+      "january", "february", "march", "april", "may", "june",
+      "july", "august", "september", "october", "november", "december"
+    ];
+
+    const DATE_PATTERN =
+      /\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}[./]\d{1,2}(?:[./]\d{2,4})?\b|\b\d{1,2}\s+(?:январ|феврал|март|апрел|мая|июн|июл|август|сентябр|октябр|ноябр|декабр)|\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}\b|\b\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)/i;
+
+    function parseSchedule(text, source) {
+      const lines = text.split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      const blocks = [];
+
+      for (const line of lines) {
+        if (DATE_PATTERN.test(line)) {
+          blocks.push(line);
+        } else if (blocks.length) {
+          blocks[blocks.length - 1] += "\n" + line;
+        }
+      }
+
+      return blocks.map(raw => {
+        const lower = raw.toLowerCase();
+
+        let date = "";
+        let dateText = "";
+        let match;
+
+        if (match = raw.match(/\b(\d{4})-(\d{2})-(\d{2})\b/)) {
+          date = match[0];
+          dateText = match[0];
+        } else if (
+          match = raw.match(
+            /\b(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?\b/
+          )
+        ) {
+          dateText = match[0];
+
+          if (match[3]) {
+            date = `${match[3]}-${pad(match[2])}-${pad(match[1])}`;
+          }
+        } else if (
+          match = lower.match(
+            /\b(\d{1,2})\s+(январ[а-я]*|феврал[а-я]*|март[а-я]*|апрел[а-я]*|мая|июн[а-я]*|июл[а-я]*|август[а-я]*|сентябр[а-я]*|октябр[а-я]*|ноябр[а-я]*|декабр[а-я]*)(?:\s+(\d{4}))?/
+          )
+        ) {
+          dateText = match[0];
+
+          const month = RU_MONTHS.findIndex(
+            value => match[2].startsWith(value)
+          ) + 1;
+
+          if (match[3]) {
+            date = `${match[3]}-${pad(month)}-${pad(match[1])}`;
+          }
+        } else if (
+          match = lower.match(
+            /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})\b(?:,?\s+(\d{4}))?/
+          )
+        ) {
+          dateText = match[0];
+
+          if (match[3]) {
+            date =
+              `${match[3]}-${pad(EN_MONTHS.indexOf(match[1]) + 1)}` +
+              `-${pad(match[2])}`;
+          }
+        } else if (
+          match = lower.match(
+            /\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)(?:\s+(\d{4}))?/
+          )
+        ) {
+          dateText = match[0];
+
+          if (match[3]) {
+            date =
+              `${match[3]}-${pad(EN_MONTHS.indexOf(match[2]) + 1)}` +
+              `-${pad(match[1])}`;
+          }
+        }
+
+        // Несколько дат в одной строке: не выбираем за пользователя.
+        const firstLineDates = raw.split("\n")[0].match(
+          new RegExp(DATE_PATTERN.source, "gi")
+        ) || [];
+
+        if (firstLineDates.length > 1) date = "";
+
+        const hasAMPM = /\b[ap]\.?m\.?\b/i.test(raw);
+
+        const times = hasAMPM ? [] : [
+          ...raw.matchAll(/\b([01]?\d|2[0-3]):([0-5]\d)\b/g)
+        ].map(item => pad(item[1]) + ":" + item[2]);
+
+        let zone = "";
+
+        const iana = raw.match(
+          /\b(?:America|Europe|Asia|Pacific|Australia|Africa)\/[A-Za-z_]+(?:\/[A-Za-z_]+)?\b/
+        );
+
+        if (iana && validZone(iana[0])) {
+          zone = iana[0];
+        } else if (/new york|нью[- ]?йорк/i.test(raw)) {
+          zone = "America/New_York";
+        } else if (/москов|мск|moscow/i.test(raw)) {
+          zone = "Europe/Moscow";
+        } else if (/\bUTC\b(?!\s*[+-])/i.test(raw)) {
+          zone = "UTC";
+        }
+
+        const type =
+          /вебинар|webinar/i.test(raw) ? "webinar" :
+          /активац|activation/i.test(raw) ? "activation" :
+          /встреч|appointment|meeting/i.test(raw) ? "appointment" :
+          /задач|task|практик|practice/i.test(raw) ? "task" :
+          "event";
+
+        const quotation = raw.match(/[«“"]([^»”"]+)[»”"]/);
+
+        const title = quotation
+          ? quotation[1]
+          : (
+              raw.split("\n").find(line =>
+                /вебинар|webinar|активац|activation|встреч|appointment|meeting|задач|task|практик|practice/i.test(line)
+              ) || raw.split("\n")[0]
+            );
+
+        return {
+          id: createId(),
+          title,
+          type,
+          date: validDate(date) ? date : "",
+          dateText,
+          time: times[0] || "",
+          end: times[1] || "",
+          zone,
+          allDay: /весь день|all[- ]day/i.test(raw),
+          repeat:
+            /еженедель|каждую неделю|every week|weekly/i.test(raw)
+              ? "weekly"
+              : /ежеднев|every day|daily/i.test(raw)
+                ? "daily"
+                : "none",
+          until: "",
+          reminders: [],
+          description: raw,
+          url: (raw.match(/https?:\/\/[^\s<>"»]+/) || [""])[0],
+          source,
+          raw,
+          done: [],
+          selected: false
+        };
+      });
+    }
+
+    /*
+    ============================================================
+    БЛОК 9. ЗАГРУЗКА БИБЛИОТЕК
+
+    Библиотеки загружаются только при необходимости:
+    PDF.js — PDF;
+    Mammoth — DOCX;
+    Tesseract.js — распознавание изображений.
+
+    Содержимое пользовательских файлов обрабатывается
+    в браузере. Для загрузки библиотек/моделей нужен интернет.
+    ============================================================
+    */
+
+    function loadScript(url) {
+      if (scriptPromises.has(url)) return scriptPromises.get(url);
+
+      const promise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+
+        script.src = url;
+        script.onload = resolve;
+
+        script.onerror = () => {
+          scriptPromises.delete(url);
+          script.remove();
+
+          reject(new Error(tr(
+            "Не удалось загрузить библиотеку. Проверьте интернет и ограничения редактора.",
+            "Could not load a library. Check internet access and editor restrictions."
+          )));
+        };
+
+        document.head.appendChild(script);
+      });
+
+      scriptPromises.set(url, promise);
+      return promise;
+    }
+
+    function setImportStatus(message) {
+      importStatus = message;
+
+      const element = document.getElementById("importStatus");
+      if (element) element.textContent = message;
+    }
+
+    async function getOCRWorker() {
+      if (ocrWorker) return ocrWorker;
+
+      await loadScript(
+        "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"
+      );
+
+      ocrWorker = await Tesseract.createWorker("rus+eng", 1, {
+        workerPath:
+          "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js",
+        corePath:
+          "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1",
+        langPath:
+          "https://tessdata.projectnaptha.com/4.0.0",
+
+        logger(message) {
+          if (message.status === "recognizing text") {
+            setImportStatus(
+              tr("Распознавание: ", "Recognizing: ") +
+              Math.round(message.progress * 100) + "%"
+            );
+          }
+        }
+      });
+
+      return ocrWorker;
+    }
+
+    /*
+    ============================================================
+    БЛОК 10. ИЗВЛЕЧЕНИЕ ТЕКСТА ИЗ ФАЙЛОВ
+
+    Ограничения:
+    - до 15 МБ на файл;
+    - PDF до 30 страниц;
+    - DOCX: текст, без OCR встроенных картинок;
+    - старый формат DOC не поддерживается.
+    ============================================================
+    */
+
+    async function extractFile(file) {
+      const name = file.name;
+
+      if (/\.txt$/i.test(name)) {
+        return [{ text: await file.text(), source: name }];
+      }
+
+      if (/\.docx$/i.test(name)) {
+        await loadScript(
+          "https://cdn.jsdelivr.net/npm/mammoth@1.9.1/mammoth.browser.js"
+        );
+
+        let result;
+
+        try {
+          result = await mammoth.extractRawText({
+            arrayBuffer: await file.arrayBuffer()
+          });
+        } catch {
+          throw new Error(tr(
+            "Не удалось прочитать DOCX. Возможно, файл повреждён или защищён паролем.",
+            "Could not read DOCX. It may be damaged or password-protected."
+          ));
+        }
+
+        if (!result.value.trim()) {
+          throw new Error(tr(
+            "Текст в DOCX не найден. Картинки из Word загрузите отдельно.",
+            "No DOCX text found. Upload embedded images separately."
+          ));
+        }
+
+        return [{ text: result.value, source: name }];
+      }
+
+      if (/\.(jpg|jpeg|png)$/i.test(name)) {
+        const previous = sourceImages.get(name);
+
+        if (previous?.startsWith("blob:")) {
+          URL.revokeObjectURL(previous);
+        }
+
+        sourceImages.set(name, URL.createObjectURL(file));
+
+        const worker = await getOCRWorker();
+        const result = await worker.recognize(file);
+
+        return [{ text: result.data.text, source: name }];
+      }
+
+      if (/\.pdf$/i.test(name)) {
+        await loadScript(
+          "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"
+        );
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+
+        const pdf = await pdfjsLib.getDocument({
+          data: await file.arrayBuffer()
+        }).promise;
+
+        if (pdf.numPages > 30) {
+          await pdf.destroy();
+
+          throw new Error(tr(
+            "В PDF больше 30 страниц. Разделите документ.",
+            "The PDF has more than 30 pages. Split the document."
+          ));
+        }
+
+        const extracted = [];
+
+        try {
+          for (let pageNumber = 1;
+               pageNumber <= pdf.numPages;
+               pageNumber++) {
+
+            setImportStatus(
+              `${name}: ${pageNumber}/${pdf.numPages}`
+            );
+
+            const page = await pdf.getPage(pageNumber);
+            const content = await page.getTextContent();
+
+            let text = "";
+            let lastY = null;
+
+            for (const item of content.items) {
+              if (typeof item.str !== "string") continue;
+
+              const y = item.transform[5];
+
+              if (lastY !== null && Math.abs(y - lastY) > 4) {
+                text += "\n";
+              }
+
+              text += item.str + " ";
+
+              if (item.hasEOL) text += "\n";
+              lastY = y;
+            }
+
+            // Если текстового слоя почти нет, распознаём страницу.
+            if (text.trim().length < 20) {
+              const viewport = page.getViewport({ scale: 1.5 });
+              const canvas = document.createElement("canvas");
+
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+
+              await page.render({
+                canvasContext: canvas.getContext("2d"),
+                viewport
+              }).promise;
+
+              const worker = await getOCRWorker();
+              const result = await worker.recognize(canvas);
+
+              text = result.data.text;
+
+              canvas.width = 0;
+              canvas.height = 0;
+            }
+
+            extracted.push({
+              text,
+              source: `${name} · ${pageNumber}`
+            });
+          }
+        } finally {
+          await pdf.destroy();
+        }
+
+        return extracted;
+      }
+
+      throw new Error(tr(
+        "Этот формат не поддерживается.",
+        "This file format is not supported."
+      ));
+    }
+
+    async function importFiles(fileList) {
+      if (importBusy) return;
+
+      const files = Array.from(fileList);
+      if (!files.length) return;
+
+      importBusy = true;
+      render();
+
+      let count = 0;
+      const messages = [];
+
+      try {
+        for (const file of files) {
+          try {
+            if (file.size > 15 * 1024 * 1024) {
+              throw new Error(tr(
+                "Файл больше 15 МБ.",
+                "The file is larger than 15 MB."
+              ));
+            }
+
+            setImportStatus(
+              tr("Обработка: ", "Processing: ") + file.name
+            );
+
+            const extracted = await extractFile(file);
+
+            for (const part of extracted) {
+              const drafts = parseSchedule(
+                part.text,
+                part.source
+              );
+
+              state.drafts.push(...drafts);
+              count += drafts.length;
+
+              if (!drafts.length) {
+                messages.push(
+                  part.source + ": " +
+                  tr(
+                    "даты не найдены. Вставьте текст или создайте запись вручную.",
+                    "no dates found. Paste text or create an entry manually."
+                  )
+                );
+              }
+            }
+          } catch (error) {
+            messages.push(file.name + ": " + error.message);
+          }
+        }
+
+        saveState();
+
+        importStatus =
+          tr("Найдено записей: ", "Entries found: ") + count +
+          (messages.length ? "\n" + messages.join("\n") : "");
+      } finally {
+        importBusy = false;
+        render();
+      }
+    }
+
+    /*
+    ============================================================
+    БЛОК 11. ЭКРАН ИМПОРТА И ПОДТВЕРЖДЕНИЕ
+    ============================================================
+    */
+
+    function renderImport() {
+      return `
+        <section class="card">
+          <h2>${tr(
+            "Из файла — в календарь",
+            "From file to calendar"
+          )}</h2>
+
+          <div class="upload">
+            <p><strong>PDF · DOCX · TXT · JPG · PNG</strong></p>
+
+            <input type="file" multiple
+              accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
+              onchange="importFiles(this.files)"
+              ${importBusy ? "disabled" : ""}
+              aria-label="${tr("Выбрать файлы", "Choose files")}">
+
+            <p class="subtitle" style="margin-top:12px">
+              ${tr(
+                "До 15 МБ на файл. PDF — до 30 страниц.",
+                "Up to 15 MB per file. PDF — up to 30 pages."
+              )}
+            </p>
+          </div>
+
+          <p class="hint">
+            ${tr(
+              "Распознавание проходит в браузере. Для загрузки библиотек и языковых моделей нужен интернет. DOCX читается как текст; картинки внутри Word загрузите отдельно.",
+              "Recognition runs in your browser. Internet is needed to load libraries and language models. DOCX text is extracted; upload embedded Word images separately."
+            )}
+          </p>
+
+          <p class="hint warning">
+            ${tr(
+              "Сверяйте все записи с оригиналом. Таблицы, несколько событий в одной строке и необычные форматы могут распознаваться неточно. Строки без найденной даты могут быть пропущены.",
+              "Check all entries against the original. Tables, multiple events on one line and unusual formats may be misread. Lines without a detected date may be skipped."
+            )}
+          </p>
+
+          <div class="status" id="importStatus" role="status">
+            ${escapeHTML(importStatus)}
+          </div>
+
+          <details>
+            <summary>${tr(
+              "Или вставить текст расписания",
+              "Or paste schedule text"
+            )}</summary>
+
+            <textarea id="pastedSchedule" style="margin-top:12px"
+              placeholder="12 ноября 2026, 19:00 America/New_York — Вебинар">
+            </textarea>
+
+            <button onclick="parsePastedText()"
+              style="margin-top:10px"
+              ${importBusy ? "disabled" : ""}>
+              ${tr("Найти записи", "Find entries")}
+            </button>
+          </details>
+
+          <div class="toolbar" style="padding:24px 0 0">
+            <h2>${tr("На проверке", "For review")}
+              (${state.drafts.length})
+            </h2>
+
+            ${state.drafts.length ? `
+              <button class="danger" onclick="clearDrafts()">
+                ${tr("Очистить", "Clear")}
+              </button>
+            ` : ""}
+          </div>
+
+          ${state.drafts.map(entry => {
+            const errors = missingFields(entry);
+            const duplicate = isDuplicate(entry);
+
+            return `
+              <article class="draft">
+                <input type="checkbox"
+                  ${entry.selected ? "checked" : ""}
+                  ${errors.length || duplicate ? "disabled" : ""}
+                  onchange="selectDraft('${entry.id}', this.checked)"
+                  aria-label="${escapeHTML(entry.title)}">
+
+                <div class="draft-content">
+                  <strong>${escapeHTML(entry.title)}</strong>
+
+                  <p>
+                    ${entry.date
+                      ? formatDate(entry.date, true)
+                      : escapeHTML(entry.dateText || "—")
+                    }
+                    · ${escapeHTML(entry.time || "—")}
+                    · ${escapeHTML(entry.zone || "—")}
+                  </p>
+
+                  <p style="color:var(--warning)">
+                    ${duplicate
+                      ? tr(
+                          "Возможный дубликат — уже есть в календаре.",
+                          "Possible duplicate — already in the calendar."
+                        )
+                      : errors.length
+                        ? tr("Уточните: ", "Clarify: ") +
+                          escapeHTML(errors.join(", "))
+                        : tr(
+                            "Данные заполнены. Проверьте источник.",
+                            "Details complete. Check the source."
+                          )
+                    }
+                  </p>
+
+                  <details>
+                    <summary>${tr("Источник", "Source")}</summary>
+                    <pre class="source">${escapeHTML(entry.raw)}</pre>
+                  </details>
+                </div>
+
+                <button onclick="openEditor('${entry.id}', true)">
+                  ${tr("Проверить", "Review")}
+                </button>
+              </article>
+            `;
+          }).join("")}
+
+          ${state.drafts.length ? `
+            <div class="actions">
+              <button class="primary" onclick="confirmDrafts()">
+                ${tr("Добавить выбранные", "Add selected entries")}
+              </button>
+            </div>
+          ` : ""}
+        </section>
+      `;
+    }
+
+    function parsePastedText() {
+      const text = document.getElementById("pastedSchedule").value;
+
+      const entries = parseSchedule(
+        text,
+        tr("Вставленный текст", "Pasted text")
+      );
+
+      state.drafts.push(...entries);
+      saveState();
+
+      importStatus =
+        tr("Найдено записей: ", "Entries found: ") + entries.length;
+
+      render();
+    }
+
+    function selectDraft(id, selected) {
+      const entry = state.drafts.find(item => item.id === id);
+      if (!entry) return;
+
+      entry.selected = selected;
+      saveState();
+    }
+
+    function clearDrafts() {
+      if (!confirm(tr(
+        "Удалить все черновики?",
+        "Delete all drafts?"
+      ))) return;
+
+      state.drafts = [];
+      saveState();
+      render();
+    }
+
+    function confirmDrafts() {
+      let added = 0;
+
+      state.drafts = state.drafts.filter(entry => {
+        if (
+          entry.selected &&
+          !missingFields(entry).length &&
+          !isDuplicate(entry)
+        ) {
+          state.entries.push({ ...entry, selected: false });
+          added++;
+          return false;
+        }
+
+        return true;
+      });
+
+      saveState();
+      render();
+
+      showToast(tr("Добавлено: ", "Added: ") + added);
+    }
+
+    /*
+    ============================================================
+    БЛОК 12. ЭКСПОРТ ICALENDAR (.ICS)
+
+    Экспортируются:
+    - VEVENT для событий и задач;
+    - RRULE для повторений;
+    - VALARM для напоминаний;
+    - VTIMEZONE для часовых поясов.
+
+    Задачи экспортируются как события с префиксом «Задача».
+    Отметки выполнения отдельных задач остаются в приложении.
+    Экспорт не является автоматической синхронизацией.
+    ============================================================
+    */
+
+    function escapeICS(value) {
+      return String(value || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/\r?\n/g, "\\n")
+        .replace(/;/g, "\\;")
+        .replace(/,/g, "\\,");
+    }
+
+    function foldICS(line) {
+      let output = "";
+      let part = "";
+      let bytes = 0;
+
+      for (const character of line) {
+        const length = new TextEncoder().encode(character).length;
+
+        if (bytes + length > 75) {
+          output += part + "\r\n";
+          part = " ";
+          bytes = 1;
+        }
+
+        part += character;
+        bytes += length;
+      }
+
+      return output + part;
+    }
+
+    function utcStamp(date) {
+      return date.toISOString()
+        .replace(/[-:]/g, "")
+        .replace(/\.\d{3}/, "");
+    }
+
+    /*
+    Определения зон строятся из базы Intl браузера до 2100 года.
+    Это покрывает выбранный диапазон дат этой версии.
+    Будущие изменения законодательства о часовых поясах
+    потребуют свежего экспорта из обновлённого браузера.
+    */
+
+    function timezoneLines(zone, firstYear) {
+      const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: zone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23"
+      });
+
+      function offsetAt(timestamp) {
+        const parts = Object.fromEntries(
+          formatter.formatToParts(new Date(timestamp))
+            .map(part => [part.type, part.value])
+        );
+
+        return Date.parse(
+          `${parts.year}-${parts.month}-${parts.day}` +
+          `T${parts.hour}:${parts.minute}:${parts.second}Z`
+        ) - timestamp;
+      }
+
+      function offsetText(offset) {
+        const seconds = Math.round(Math.abs(offset) / 1000);
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor(seconds % 3600 / 60);
+        const remainder = seconds % 60;
+
+        return (offset < 0 ? "-" : "+") +
+          pad(hours) + pad(minutes) +
+          (remainder ? pad(remainder) : "");
+      }
+
+      function localStamp(timestamp) {
+        return utcStamp(new Date(timestamp)).slice(0, 15);
+      }
+
+      let cursor = Date.UTC(firstYear, 0, 1);
+      let previous = offsetAt(cursor);
+      const end = Date.UTC(2101, 0, 1);
+
+      const lines = [
+        "BEGIN:VTIMEZONE",
+        "TZID:" + zone,
+        "BEGIN:STANDARD",
+        "DTSTART:" + localStamp(cursor + previous),
+        "TZOFFSETFROM:" + offsetText(previous),
+        "TZOFFSETTO:" + offsetText(previous),
+        "END:STANDARD"
+      ];
+
+      while (cursor < end) {
+        const next = Math.min(cursor + 7 * 86400000, end);
+        const offset = offsetAt(next);
+
+        if (offset !== previous) {
+          let low = cursor;
+          let high = next;
+
+          while (high - low > 1000) {
+            const middle = Math.floor((low + high) / 2000) * 1000;
+
+            if (offsetAt(middle) === previous) {
+              low = middle;
+            } else {
+              high = middle;
+            }
+          }
+
+          const kind = offset > previous ? "DAYLIGHT" : "STANDARD";
+
+          lines.push(
+            "BEGIN:" + kind,
+            "DTSTART:" + localStamp(high + previous),
+            "TZOFFSETFROM:" + offsetText(previous),
+            "TZOFFSETTO:" + offsetText(offset),
+            "END:" + kind
+          );
+
+          previous = offset;
+        }
+
+        cursor = next;
+      }
+
+      lines.push("END:VTIMEZONE");
+      return lines;
+    }
+
+    function buildICS(entries) {
+      const lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//My Personal Calendar//RU EN//",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH"
+      ];
+
+      const zones = new Set(
+        entries.filter(entry => !entry.allDay)
+          .map(entry => entry.zone)
+      );
+
+      for (const zone of zones) {
+        const years = entries
+          .filter(entry => entry.zone === zone)
+          .map(entry => Number(entry.date.slice(0, 4)));
+
+        lines.push(...timezoneLines(
+          zone,
+          Math.min(...years) - 1
+        ));
+      }
+
+      for (const entry of entries) {
+        const date = entry.date.replace(/-/g, "");
+
+        const title = entry.type === "task"
+          ? tr("Задача: ", "Task: ") + entry.title
+          : entry.title;
+
+        lines.push(
+          "BEGIN:VEVENT",
+          "UID:" + entry.id + "@my-personal-calendar",
+          "DTSTAMP:" + utcStamp(new Date()),
+          "SUMMARY:" + escapeICS(title)
+        );
+
+        if (entry.allDay) {
+          const nextDate = localDate(entry.date);
+          nextDate.setDate(nextDate.getDate() + 1);
+
+          lines.push(
+            "DTSTART;VALUE=DATE:" + date,
+            "DTEND;VALUE=DATE:" +
+              dateKey(nextDate).replace(/-/g, "")
+          );
+        } else {
+          lines.push(
+            "DTSTART;TZID=" + entry.zone + ":" +
+            date + "T" + entry.time.replace(":", "") + "00"
+          );
+
+          if (entry.end) {
+            lines.push(
+              "DTEND;TZID=" + entry.zone + ":" +
+              date + "T" + entry.end.replace(":", "") + "00"
+            );
+          }
+        }
+
+        if (entry.repeat !== "none") {
+          let rule = "RRULE:FREQ=" + {
+            daily: "DAILY",
+            weekly: "WEEKLY",
+            monthly: "MONTHLY"
+          }[entry.repeat];
+
+          // Ограничиваем экспорт рамками поддерживаемого диапазона.
+          const until = entry.until || "2099-12-31";
+
+          rule += ";UNTIL=" + (
+            entry.allDay
+              ? until.replace(/-/g, "")
+              : utcStamp(toUTC(until, "23:59", entry.zone))
+          );
+
+          lines.push(rule);
+        }
+
+        lines.push(
+          "DESCRIPTION:" + escapeICS(
+            entry.description +
+            (entry.source ? "\n" + entry.source : "")
+          )
+        );
+
+        if (entry.url) {
+          lines.push(
+            "URL:" + entry.url.replace(/[\r\n]/g, "")
+          );
+        }
+
+        for (const minutes of entry.reminders) {
+          lines.push(
+            "BEGIN:VALARM",
+            "ACTION:DISPLAY",
+            "DESCRIPTION:" + escapeICS(entry.title),
+            "TRIGGER:-PT" + minutes + "M",
+            "END:VALARM"
+          );
+        }
+
+        lines.push("END:VEVENT");
+      }
+
+      lines.push("END:VCALENDAR");
+
+      return lines.map(foldICS).join("\r\n") + "\r\n";
+    }
+
+    function exportICS() {
+      const entries = state.entries.filter(
+        entry => !missingFields(entry).length
+      );
+
+      if (!entries.length) {
+        showToast(tr(
+          "Сначала добавьте записи.",
+          "Add entries first."
+        ));
+        return;
+      }
+
+      const confirmed = confirm(tr(
+        `Подготовить .ics со всеми записями (${entries.length})?\n\n` +
+        "Задачи будут экспортированы как события. " +
+        "Файл нужно самостоятельно импортировать в выбранный календарь. " +
+        "Повторный импорт может создать дубликаты.",
+        `Prepare an .ics file with all entries (${entries.length})?\n\n` +
+        "Tasks will export as events. " +
+        "Import the file into your chosen calendar yourself. " +
+        "Repeated imports may create duplicates."
+      ));
+
+      if (!confirmed) return;
+
+      try {
+        downloadFile(
+          buildICS(entries),
+          "my-calendar.ics",
+          "text/calendar;charset=utf-8"
+        );
+      } catch {
+        showToast(tr(
+          "Не удалось экспортировать. Проверьте даты и часовые пояса.",
+          "Could not export. Check dates and time zones."
+        ));
+      }
+    }
+
+    /*
+    ============================================================
+    БЛОК 13. НАСТРОЙКИ И РЕЗЕРВНЫЕ КОПИИ
+
+    JSON хранит записи, черновики и отметки выполнения.
+    Исходные изображения в резервную копию не включаются.
+    ============================================================
+    */
+
+    function renderSettings() {
+      return `
+        <section class="card">
+          <h2>${tr("Настройки", "Settings")}</h2>
+
+          <label style="max-width:420px">
+            ${tr(
+              "Часовой пояс для новых ручных записей",
+              "Time zone for new manual entries"
+            )}
+
+            <select onchange="changeDefaultZone(this.value)">
+              ${[...new Set([state.zone, ...ZONES])].map(zone => `
+                <option value="${escapeHTML(zone)}"
+                  ${zone === state.zone ? "selected" : ""}>
+                  ${escapeHTML(zone)}
+                </option>
+              `).join("")}
+            </select>
+          </label>
+
+          <h3 style="margin-top:28px">
+            ${tr("Напоминания", "Reminders")}
+          </h3>
+
+          <p class="hint">
+            ${tr(
+              "Работают, пока страница открыта. Фоновая вкладка может задерживать уведомления. Для напоминаний при закрытом приложении используйте внешний календарь после импорта .ics.",
+              "Reminders work while this page is open. Background tabs may delay notifications. For reminders while closed, use an external calendar after importing .ics."
+            )}
+          </p>
+
+          <button onclick="enableNotifications()">
+            ${tr(
+              "Разрешить уведомления браузера",
+              "Enable browser notifications"
+            )}
+          </button>
+
+          <h3 style="margin-top:28px">
+            ${tr("Сохранность данных", "Your data")}
+          </h3>
+
+          <p class="hint">
+            ${tr(
+              "Записи хранятся в этом браузере и для этого адреса страницы. Очистка браузера или смена адреса редактора может сделать их недоступными. Регулярно скачивайте JSON-копию.",
+              "Entries are stored in this browser for this page’s address. Clearing browser data or changing the editor URL may make them unavailable. Download JSON backups regularly."
+            )}
+          </p>
+
+          <button onclick="exportBackup()">
+            ${tr("Скачать JSON-копию", "Download JSON backup")}
+          </button>
+
+          <label style="margin-top:18px;max-width:500px">
+            ${tr(
+              "Восстановить JSON-копию",
+              "Restore JSON backup"
+            )}
+            <input type="file" accept=".json"
+              onchange="restoreBackup(this.files[0])">
+          </label>
+
+          <h3 style="margin-top:28px">
+            ${tr("Подключение календарей", "Calendar connections")}
+          </h3>
+
+          <p class="hint">
+            ${tr(
+              "Google Calendar, Apple Calendar и Outlook: сейчас доступен перенос через .ics. Прямая синхронизация, облачное хранение и фоновые уведомления потребуют отдельной серверной реализации и авторизации.",
+              "Google Calendar, Apple Calendar and Outlook: this version transfers entries via .ics. Direct sync, cloud storage and background notifications require a separate backend and authorization."
+            )}
+          </p>
+
+          <p class="hint">
+            ${tr(
+              "Поддерживаемые даты: 1900–2099. Распознавание не вычисляет метафизические даты и не проверяет содержание практик. Напоминания после импорта зависят от настроек внешнего календаря.",
+              "Supported dates: 1900–2099. Recognition does not calculate metaphysical dates or validate practice content. Imported reminders depend on the external calendar’s settings."
+            )}
+          </p>
+        </section>
+      `;
+    }
+
+    function changeDefaultZone(zone) {
+      state.zone = zone;
+      saveState();
+    }
+
+    function exportBackup() {
+      downloadFile(
+        JSON.stringify({
+          version: 1,
+          entries: state.entries,
+          drafts: state.drafts
+        }, null, 2),
+        "my-calendar-backup.json",
+        "application/json"
+      );
+    }
+
+    function cleanBackupEntry(value, draft) {
+      if (
+        !value ||
+        typeof value !== "object" ||
+        !TYPES.includes(value.type) ||
+        typeof value.title !== "string" ||
+        !["none", "daily", "weekly", "monthly"]
+          .includes(value.repeat) ||
+        !Array.isArray(value.reminders) ||
+        value.reminders.length > 5 ||
+        value.reminders.some(number =>
+          !Number.isInteger(number) ||
+          number < 0 ||
+          number > 525600
+        )
+      ) {
+        throw new Error("Invalid backup entry");
+      }
+
+      const entry = {
+        id: typeof value.id === "string" &&
+          /^[a-zA-Z0-9-]+$/.test(value.id)
+            ? value.id : createId(),
+
+        title: value.title,
+        type: value.type,
+        date: String(value.date || ""),
+        dateText: String(value.dateText || ""),
+        time: String(value.time || ""),
+        end: String(value.end || ""),
+        zone: String(value.zone || ""),
+        allDay: Boolean(value.allDay),
+        repeat: value.repeat,
+        until: String(value.until || ""),
+        reminders: value.reminders,
+        description: String(value.description || ""),
+        url: String(value.url || ""),
+        source: String(value.source || ""),
+        raw: String(value.raw || ""),
+        selected: false,
+        done: Array.isArray(value.done)
+          ? value.done.filter(validDate)
+          : []
+      };
+
+      if (!draft && missingFields(entry).length) {
+        throw new Error("Invalid saved entry");
+      }
+
+      return entry;
+    }
+
+    async function restoreBackup(file) {
+      if (!file) return;
+
+      try {
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error("Backup too large");
+        }
+
+        const data = JSON.parse(await file.text());
+
+        if (
+          data.version !== 1 ||
+          !Array.isArray(data.entries) ||
+          !Array.isArray(data.drafts)
+        ) {
+          throw new Error("Invalid backup");
+        }
+
+        // Сначала проверяем всё, затем изменяем состояние.
+        const entries = data.entries.map(
+          value => cleanBackupEntry(value, false)
+        );
+
+        const drafts = data.drafts.map(
+          value => cleanBackupEntry(value, true)
+        );
+
+        if (!confirm(tr(
+          "Добавить записи из копии? Существующие записи сохранятся.",
+          "Merge this backup? Existing entries will be kept."
+        ))) return;
+
+        for (const entry of entries) {
+          if (
+            !state.entries.some(item => item.id === entry.id) &&
+            !isDuplicate(entry)
+          ) {
+            state.entries.push(entry);
+          }
+        }
+
+        for (const draft of drafts) {
+          if (!state.drafts.some(item => item.id === draft.id)) {
+            state.drafts.push(draft);
+          }
+        }
+
+        saveState();
+        render();
+
+        showToast(tr(
+          "Копия восстановлена.",
+          "Backup restored."
+        ));
+      } catch {
+        showToast(tr(
+          "Не удалось прочитать копию. Проверьте файл.",
+          "Could not read the backup. Check the file."
+        ));
+      }
+    }
+
+    /*
+    ============================================================
+    БЛОК 14. НАПОМИНАНИЯ
+
+    Проверка каждые 15 секунд.
+    Учитываются повторения и часовой пояс записи.
+
+    Это не серверный планировщик: закрытая страница не может
+    надёжно доставлять уведомления.
+    ============================================================
+    */
+
+    async function enableNotifications() {
+      if (!("Notification" in window)) {
+        showToast(tr(
+          "В этом браузере уведомления недоступны.",
+          "Notifications are unavailable in this browser."
+        ));
+        return;
+      }
+
+      try {
+        const permission = await Notification.requestPermission();
+
+        showToast(permission === "granted"
+          ? tr(
+              "Уведомления разрешены. Оставляйте страницу открытой.",
+              "Notifications enabled. Keep this page open."
+            )
+          : tr(
+              "Разрешение не получено. Внутри страницы останутся сообщения.",
+              "Permission not granted. In-page messages remain available."
+            )
+        );
+      } catch {
+        showToast(tr(
+          "Редактор или браузер заблокировал уведомления.",
+          "The editor or browser blocked notifications."
+        ));
+      }
+    }
+
+    function dayInZone(date, zone) {
+      const parts = Object.fromEntries(
+        new Intl.DateTimeFormat("en", {
+          timeZone: zone,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).formatToParts(date).map(part => [part.type, part.value])
+      );
+
+      return `${parts.year}-${parts.month}-${parts.day}`;
+    }
+
+    let lastReminderCheck = Date.now() - 60000;
+
+    function checkReminders() {
+      const now = Date.now();
+
+      // Не показываем поток давно пропущенных уведомлений.
+      const since = Math.max(lastReminderCheck, now - 120000);
+      lastReminderCheck = now;
+
+      for (const entry of state.entries) {
+        for (const minutes of entry.reminders || []) {
+          try {
+            const occurrenceDay = dayInZone(
+              new Date(now + minutes * 60000),
+              entry.zone
+            );
+
+            if (
+              !occursOn(entry, occurrenceDay) ||
+              (entry.done || []).includes(occurrenceDay)
+            ) {
+              continue;
+            }
+
+            const eventTime = toUTC(
+              occurrenceDay,
+              entry.allDay ? "00:00" : entry.time,
+              entry.zone
+            ).getTime();
+
+            const trigger = eventTime - minutes * 60000;
+            const key = `${entry.id}|${occurrenceDay}|${minutes}`;
+
+            if (
+              trigger > since &&
+              trigger <= now &&
+              !deliveredReminders.has(key)
+            ) {
+              deliveredReminders.add(key);
+
+              showToast(
+                tr("Напоминание: ", "Reminder: ") + entry.title
+              );
+
+              if (
+                "Notification" in window &&
+                Notification.permission === "granted"
+              ) {
+                try {
+                  new Notification(entry.title, {
+                    body:
+                      (entry.allDay
+                        ? tr("Весь день", "All day")
+                        : entry.time) +
+                      " · " + entry.zone,
+                    tag: key
+                  });
+                } catch {
+                  // Сообщение внутри страницы уже показано.
+                }
+              }
+            }
+          } catch {
+            // Невалидное или неоднозначное время не угадываем.
+          }
+        }
+      }
+    }
+
+    /*
+    ============================================================
+    БЛОК 15. ЗАПУСК
+    ============================================================
+    */
+
+    render();
+
+    setInterval(checkReminders, 15000);
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) checkReminders();
+    });
+  </script>
+</body>
+</html>

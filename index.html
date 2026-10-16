@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Локальный календарь событий, задач и практик. Данные остаются в браузере.">
+  <title>Мой календарь</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <style>
+    :root {
+      color-scheme: light;
+      --background: hwb(288 16% 12%);
+      --surface: #d910cc4c;
+      --text: #29334b;
+      --muted: #768198;
+      --border: #e3e8f2;
+      --primary: #596fca;
+      --primary-light: #eef1ff;
+      --primary-hover: #4c62b8;
+      --glow: #e7ecff;
+      --chip: #f6f7fb;
+      --shadow: #596fca14;
+      --radius: 16px;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --background: #141924;
+      --surface: #1e2433;
+      --text: #e7ebf5;
+      --muted: #96a2b8;
+      --border: #323a4e;
+      --primary: #667ee0;
+      --primary-light: #2c3554;
+      --primary-hover: #7d92ea;
+      --glow: #243056;
+      --chip: #171d2a;
+      --shadow: #00000059;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, var(--glow) 0, transparent 42%),
+        var(--background);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button, a.button {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      font: inherit;
+    }
+
+    button:hover, a.button:hover {
+      background: var(--primary-light);
+    }
+
+    button.active {
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .button.primary {
+      color: white;
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .button.primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .wrap {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 650;
+      letter-spacing: -0.3px;
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 28px;
+      height: 28px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 36px;
+      align-items: center;
+      padding: 48px 0 28px;
+    }
+
+    .hero > * {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(34px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: -1.4px;
+    }
+
+    .lead {
+      margin: 0 0 24px;
+      max-width: 520px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .preview {
+      padding: 18px;
+      box-shadow: 0 18px 40px var(--shadow);
+    }
+
+    .preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+
+    .preview-head strong {
+      font-size: 16px;
+    }
+
+    .preview-head span,
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .weekdays, .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .weekdays span {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .days span {
+      display: grid;
+      place-items: center;
+      height: 36px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+
+    .days .today {
+      color: white;
+      background: var(--primary);
+    }
+
+    .days .mark {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .chips {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .chip {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--chip);
+      border-left: 3px solid var(--primary);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .chip.task {
+      border-left-color: #c6a05d;
+    }
+
+    .chip.practice {
+      border-left-color: #70a38b;
+    }
+
+    .section {
+      padding: 18px 0 8px;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: -0.6px;
+    }
+
+    .section > p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .feature {
+      padding: 18px;
+    }
+
+    .feature h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .step {
+      padding: 18px;
+    }
+
+    .step b {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 12px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 13px;
+    }
+
+    .step h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .closing {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 28px 0 10px;
+      padding: 22px;
+    }
+
+    .closing h2 {
+      margin-bottom: 6px;
+    }
+
+    .closing p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    footer {
+      padding: 8px 0 28px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid, .steps {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero {
+        padding-top: 28px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .preview-head span {
+        display: none;
+      }
+
+      .preview {
+        padding: 14px;
+      }
+
+      .top, .closing {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hero, .grid, .steps {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script>
+    try {
+      var savedTheme = localStorage.getItem("my-calendar-theme");
+      if (savedTheme === "dark" || savedTheme === "light") {
+        document.documentElement.dataset.theme = savedTheme;
+      }
+    } catch (error) {
+      // Без хранилища останется светлая тема.
+    }
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="./index.html">
+        <img src="favicon.svg" alt="">
+        <span data-i18n="brand">Мой календарь</span>
+      </a>
+
+      <div class="row">
+        <button type="button" id="theme-toggle" onclick="toggleTheme()" aria-pressed="false">Тёмная</button>
+        <button type="button" id="lang-ru" onclick="setLanguage('ru')">RU</button>
+        <button type="button" id="lang-en" onclick="setLanguage('en')">EN</button>
+        <a class="button primary" href="./calendar.html" data-i18n="open">Открыть календарь</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow" data-i18n="eyebrow">В браузере, без аккаунта</p>
+          <h1 data-i18n="title">События и задачи в одном календаре</h1>
+          <p class="lead" data-i18n="lead">
+            Месяц, список дел, импорт расписания и экспорт в обычный календарь. Записи остаются на этом устройстве.
+          </p>
+          <div class="row">
+            <a class="button primary" href="./calendar.html" data-i18n="openApp">Перейти к календарю</a>
+            <a class="button" href="#how" data-i18n="howLink">Как это работает</a>
+          </div>
+        </div>
+
+        <aside class="card preview" aria-hidden="true">
+          <div class="preview-head">
+            <strong id="preview-month">Октябрь 2026</strong>
+            <span data-i18n="previewHint">пример вида</span>
+          </div>
+          <div class="weekdays">
+            <span data-i18n="mon">ПН</span>
+            <span data-i18n="tue">ВТ</span>
+            <span data-i18n="wed">СР</span>
+            <span data-i18n="thu">ЧТ</span>
+            <span data-i18n="fri">ПТ</span>
+            <span data-i18n="sat">СБ</span>
+            <span data-i18n="sun">ВС</span>
+          </div>
+          <div class="days" id="preview-days"></div>
+          <div class="chips">
+            <div class="chip" data-i18n="chip1">10:00 · План на день</div>
+            <div class="chip task" data-i18n="chip2">Завтра · Разобрать задачи</div>
+            <div class="chip practice" data-i18n="chip3">Каждую неделю · Практика</div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" id="features">
+        <h2 data-i18n="featuresTitle">Что уже можно делать</h2>
+        <p data-i18n="featuresLead">Календарь открывается сразу и не требует установки.</p>
+        <div class="grid">
+          <article class="card feature">
+            <h3 data-i18n="f1t">Месяц и день</h3>
+            <p data-i18n="f1p">Смотрите месяц, выбирайте день и фильтруйте события, встречи, вебинары и практики.</p>
+          </article>
+          <article class="card feature">
+            <h3 data-i18n="f2t">Задачи</h3>
+            <p data-i18n="f2p">Отдельный список дел с отметкой выполнения. Повторения отмечаются по дням.</p>
+          </article>
+          <article class="card feature">
+            <h3 data-i18n="f3t">Импорт</h3>
+            <p data-i18n="f3p">Вставьте текст или загрузите PDF, DOCX и фото. Найденные даты можно проверить перед добавлением.</p>
+          </article>
+          <article class="card feature">
+            <h3 data-i18n="f4t">Перенос</h3>
+            <p data-i18n="f4p">Напоминания в открытой вкладке, файл .ics для другого календаря и JSON-копия своих записей.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="how">
+        <h2 data-i18n="howTitle">Три шага</h2>
+        <p data-i18n="howLead">Пустой календарь можно наполнить своими записями или тремя примерами.</p>
+        <div class="steps">
+          <article class="card step">
+            <b>1</b>
+            <h3 data-i18n="s1t">Откройте календарь</h3>
+            <p data-i18n="s1p">Кнопка выше ведёт в приложение. Язык главной страницы сохранится и там.</p>
+          </article>
+          <article class="card step">
+            <b>2</b>
+            <h3 data-i18n="s2t">Добавьте записи</h3>
+            <p data-i18n="s2p">Создайте событие вручную, импортируйте файл или нажмите «Показать примеры».</p>
+          </article>
+          <article class="card step">
+            <b>3</b>
+            <h3 data-i18n="s3t">Сохраните копию</h3>
+            <p data-i18n="s3p">В настройках скачайте JSON. Для Google, Apple или Outlook экспортируйте .ics.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="card closing">
+        <div>
+          <h2 data-i18n="closeTitle">Календарь уже можно пользоваться</h2>
+          <p data-i18n="closeLead">Данные не уходят на сервер: они остаются в этом браузере.</p>
+        </div>
+        <a class="button primary" href="./calendar.html" data-i18n="openApp">Перейти к календарю</a>
+      </section>
+    </main>
+
+    <footer data-i18n="footer">
+      Записи хранятся локально и привязаны к адресу страницы.
+    </footer>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "my-calendar-single-file-v1";
+
+    const TEXT = {
+      ru: {
+        brand: "Мой календарь",
+        open: "Открыть календарь",
+        openApp: "Перейти к календарю",
+        howLink: "Как это работает",
+        eyebrow: "В браузере, без аккаунта",
+        title: "События и задачи в одном календаре",
+        lead: "Месяц, список дел, импорт расписания и экспорт в обычный календарь. Записи остаются на этом устройстве.",
+        previewHint: "пример вида",
+        mon: "ПН", tue: "ВТ", wed: "СР", thu: "ЧТ", fri: "ПТ", sat: "СБ", sun: "ВС",
+        chip1: "10:00 · План на день",
+        chip2: "Завтра · Разобрать задачи",
+        chip3: "Каждую неделю · Практика",
+        featuresTitle: "Что уже можно делать",
+        featuresLead: "Календарь открывается сразу и не требует установки.",
+        f1t: "Месяц и день",
+        f1p: "Смотрите месяц, выбирайте день и фильтруйте события, встречи, вебинары и практики.",
+        f2t: "Задачи",
+        f2p: "Отдельный список дел с отметкой выполнения. Повторения отмечаются по дням.",
+        f3t: "Импорт",
+        f3p: "Вставьте текст или загрузите PDF, DOCX и фото. Найденные даты можно проверить перед добавлением.",
+        f4t: "Перенос",
+        f4p: "Напоминания в открытой вкладке, файл .ics для другого календаря и JSON-копия своих записей.",
+        howTitle: "Три шага",
+        howLead: "Пустой календарь можно наполнить своими записями или тремя примерами.",
+        s1t: "Откройте календарь",
+        s1p: "Кнопка выше ведёт в приложение. Язык главной страницы сохранится и там.",
+        s2t: "Добавьте записи",
+        s2p: "Создайте событие вручную, импортируйте файл или нажмите «Показать примеры».",
+        s3t: "Сохраните копию",
+        s3p: "В настройках скачайте JSON. Для Google, Apple или Outlook экспортируйте .ics.",
+        closeTitle: "Календарь уже можно пользоваться",
+        closeLead: "Данные не уходят на сервер: они остаются в этом браузере.",
+        footer: "Записи хранятся локально и привязаны к адресу страницы.",
+        pageTitle: "Мой календарь",
+        themeDark: "Тёмная",
+        themeLight: "Светлая",
+        themeToDark: "Включить тёмную тему",
+        themeToLight: "Включить светлую тему"
+      },
+      en: {
+        brand: "My calendar",
+        open: "Open calendar",
+        openApp: "Go to the calendar",
+        howLink: "How it works",
+        eyebrow: "In the browser, no account",
+        title: "Events and tasks in one calendar",
+        lead: "A month view, a task list, schedule import and export to a regular calendar. Entries stay on this device.",
+        previewHint: "preview",
+        mon: "MON", tue: "TUE", wed: "WED", thu: "THU", fri: "FRI", sat: "SAT", sun: "SUN",
+        chip1: "10:00 · Plan for the day",
+        chip2: "Tomorrow · Review tasks",
+        chip3: "Every week · Practice",
+        featuresTitle: "What you can do now",
+        featuresLead: "The calendar opens immediately and needs no install.",
+        f1t: "Month and day",
+        f1p: "Browse the month, pick a day and filter events, meetings, webinars and practices.",
+        f2t: "Tasks",
+        f2p: "A separate list with completion marks. Repeats are checked off day by day.",
+        f3t: "Import",
+        f3p: "Paste text or upload a PDF, DOCX or photo. Review found dates before adding them.",
+        f4t: "Take it with you",
+        f4p: "Reminders while the tab is open, an .ics file for another calendar and a JSON backup.",
+        howTitle: "Three steps",
+        howLead: "Fill an empty calendar with your own entries or three samples.",
+        s1t: "Open the calendar",
+        s1p: "The button above opens the app. The language you pick here is kept there too.",
+        s2t: "Add entries",
+        s2p: "Create an event, import a file, or choose “Show samples”.",
+        s3t: "Keep a copy",
+        s3p: "Download JSON from Settings. Export .ics for Google, Apple or Outlook.",
+        closeTitle: "The calendar is ready to use",
+        closeLead: "Nothing is sent to a server: entries stay in this browser.",
+        footer: "Entries are stored locally and tied to this page’s address.",
+        pageTitle: "My calendar",
+        themeDark: "Dark",
+        themeLight: "Light",
+        themeToDark: "Switch to dark theme",
+        themeToLight: "Switch to light theme"
+      }
+    };
+
+    const THEME_KEY = "my-calendar-theme";
+
+    function readState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (saved && typeof saved === "object") return saved;
+      } catch {
+        // Язык останется русским, если хранилище недоступно.
+      }
+
+      return null;
+    }
+
+    function currentLanguage() {
+      const saved = readState();
+      return saved && saved.language === "en" ? "en" : "ru";
+    }
+
+    function apply(language) {
+      const copy = TEXT[language];
+
+      document.documentElement.lang = language;
+      document.title = copy.pageTitle;
+
+      document.querySelectorAll("[data-i18n]").forEach(element => {
+        const value = copy[element.dataset.i18n];
+        if (value) element.textContent = value;
+      });
+
+      document.getElementById("lang-ru").classList.toggle("active", language === "ru");
+      document.getElementById("lang-en").classList.toggle("active", language === "en");
+      renderPreview(language);
+      applyTheme(currentTheme(), language);
+    }
+
+    function currentTheme() {
+      return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    }
+
+    function applyTheme(theme, language) {
+      const copy = TEXT[language || currentLanguage()];
+      const button = document.getElementById("theme-toggle");
+      const dark = theme === "dark";
+
+      document.documentElement.dataset.theme = theme;
+      button.textContent = dark ? copy.themeLight : copy.themeDark;
+      button.setAttribute("aria-pressed", dark ? "true" : "false");
+      button.setAttribute("aria-label", dark ? copy.themeToLight : copy.themeToDark);
+    }
+
+    function toggleTheme() {
+      const next = currentTheme() === "dark" ? "light" : "dark";
+
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+        // Переключение всё равно применится до закрытия страницы.
+      }
+
+      applyTheme(next);
+    }
+
+    function renderPreview(language) {
+      const now = new Date();
+      const monthLabel = now.toLocaleDateString(
+        language === "ru" ? "ru-RU" : "en-US",
+        { month: "long", year: "numeric" }
+      );
+
+      document.getElementById("preview-month").textContent =
+        monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      start.setDate(1 - ((start.getDay() + 6) % 7));
+
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+
+      const weekly = new Date(now);
+      weekly.setDate(now.getDate() + 7);
+
+      const days = document.getElementById("preview-days");
+      days.replaceChildren();
+
+      for (let index = 0; index < 28; index += 1) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + index);
+
+        const cell = document.createElement("span");
+        cell.textContent = String(date.getDate());
+
+        const sameDay = date.toDateString() === now.toDateString();
+        const nextDay = date.toDateString() === tomorrow.toDateString();
+        const weeklyDay = date.toDateString() === weekly.toDateString();
+
+        if (sameDay) cell.className = "today";
+        else if (nextDay || weeklyDay) cell.className = "mark";
+
+        if (date.getMonth() !== now.getMonth()) {
+          cell.style.opacity = "0.35";
+        }
+
+        days.appendChild(cell);
+      }
+    }
+
+    function setLanguage(language) {
+      const saved = readState() || {
+        zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+        entries: [],
+        drafts: []
+      };
+
+      saved.language = language;
+
+      if (!Array.isArray(saved.entries)) saved.entries = [];
+      if (!Array.isArray(saved.drafts)) saved.drafts = [];
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      } catch {
+        // Переключение языка на странице всё равно сработает.
+      }
+
+      apply(language);
+    }
+
+    apply(currentLanguage());
+  </script>
+</body>
+</html>
