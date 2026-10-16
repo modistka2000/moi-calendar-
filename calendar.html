@@ -259,6 +259,130 @@
       text-transform: capitalize;
     }
 
+    .layout-single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .view-switch {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .view-hint {
+      margin: 0 18px 14px;
+    }
+
+    .day-schedule {
+      padding: 0 18px 18px;
+    }
+
+    .agenda-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+    }
+
+    .agenda-time {
+      padding-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .day-schedule .primary {
+      margin-top: 8px;
+    }
+
+    .year-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      padding: 0 18px 18px;
+    }
+
+    .mini-month {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: var(--control);
+    }
+
+    button.mini-title,
+    button.mini-day {
+      border: 0;
+      background: transparent;
+      padding: 0;
+    }
+
+    button.mini-title {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 4px 2px;
+      text-align: left;
+      font-weight: 650;
+      text-transform: capitalize;
+    }
+
+    .mini-weekdays,
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 2px;
+    }
+
+    .mini-weekdays span {
+      color: var(--muted);
+      font-size: 9px;
+      text-align: center;
+    }
+
+    button.mini-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      min-height: 32px;
+      border-radius: 6px;
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    button.mini-title:hover,
+    button.mini-day:hover {
+      background: var(--primary-light);
+    }
+
+    button.mini-day.today {
+      color: white;
+      background: var(--primary);
+    }
+
+    button.mini-day.selected {
+      background: var(--selected);
+      color: var(--text);
+    }
+
+    button.mini-day.today.selected,
+    button.mini-day.today:hover {
+      color: white;
+      background: var(--primary);
+    }
+
+    button.mini-day.has-events::after {
+      content: "";
+      width: 5px;
+      height: 5px;
+      margin-top: 2px;
+      border-radius: 50%;
+      background: var(--event-color, var(--primary));
+    }
+
+    button.mini-day.today.has-events::after {
+      background: white;
+    }
+
     .weekdays, .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -526,6 +650,10 @@
       .layout {
         grid-template-columns: 1fr;
       }
+
+      .year-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @media (max-width: 600px) {
@@ -587,6 +715,14 @@
 
       .navigation button {
         width: 100%;
+      }
+
+      .year-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .agenda-row {
+        grid-template-columns: 72px minmax(0, 1fr);
       }
     }
   </style>
@@ -666,7 +802,8 @@
       language: "ru",
       zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       entries: [],
-      drafts: []
+      drafts: [],
+      view: "month"
     };
 
     let storageAvailable = true;
@@ -685,6 +822,10 @@
       }
     } catch {
       storageAvailable = false;
+    }
+
+    if (!["day", "month", "year"].includes(state.view)) {
+      state.view = "month";
     }
 
     let today = new Date();
@@ -1288,6 +1429,90 @@
       render();
     }
 
+    function setCalendarView(view) {
+      if (!["day", "month", "year"].includes(view)) return;
+
+      state.view = view;
+      const date = localDate(selectedDate);
+      currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      saveState();
+      render();
+    }
+
+    function shiftPeriod(offset) {
+      if (state.view === "day") {
+        const date = localDate(selectedDate);
+        date.setDate(date.getDate() + offset);
+        selectedDate = dateKey(date);
+        currentMonth = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          1
+        );
+        render();
+        return;
+      }
+
+      if (state.view === "year") {
+        currentMonth = new Date(
+          currentMonth.getFullYear() + offset,
+          currentMonth.getMonth(),
+          1
+        );
+        render();
+        return;
+      }
+
+      changeMonth(offset);
+    }
+
+    function periodLabel() {
+      if (state.view === "day") {
+        return localDate(selectedDate).toLocaleDateString(locale(), {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        });
+      }
+
+      if (state.view === "year") {
+        return String(currentMonth.getFullYear());
+      }
+
+      return currentMonth.toLocaleDateString(locale(), {
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function periodStepLabel(offset) {
+      const previous = offset < 0;
+
+      if (state.view === "day") {
+        return previous
+          ? tr("Предыдущий день", "Previous day")
+          : tr("Следующий день", "Next day");
+      }
+
+      if (state.view === "year") {
+        return previous
+          ? tr("Предыдущий год", "Previous year")
+          : tr("Следующий год", "Next year");
+      }
+
+      return previous
+        ? tr("Предыдущий месяц", "Previous month")
+        : tr("Следующий месяц", "Next month");
+    }
+
+    function openMonth(year, month) {
+      currentMonth = new Date(Number(year), Number(month), 1);
+      state.view = "month";
+      saveState();
+      render();
+    }
+
     function goToday() {
       const date = new Date();
 
@@ -1301,8 +1526,16 @@
       render();
     }
 
-    function selectDay(day) {
+    function selectDay(day, nextView) {
       selectedDate = day;
+      const date = localDate(day);
+      currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+
+      if (nextView === "day" || nextView === "month") {
+        state.view = nextView;
+        saveState();
+      }
+
       render();
     }
 
@@ -1311,7 +1544,170 @@
       render();
     }
 
-    function renderCalendar() {
+    function renderCalendarToolbar() {
+      return `
+        <div class="toolbar">
+          <div class="row">
+            <button onclick="shiftPeriod(-1)"
+              aria-label="${periodStepLabel(-1)}">
+              ‹
+            </button>
+
+            <h2>${periodLabel()}</h2>
+
+            <button onclick="shiftPeriod(1)"
+              aria-label="${periodStepLabel(1)}">
+              ›
+            </button>
+          </div>
+
+          <div class="row">
+            <div class="view-switch" role="group"
+              aria-label="${tr("Вид расписания", "Schedule view")}">
+              ${[
+                ["day", tr("День", "Day")],
+                ["month", tr("Месяц", "Month")],
+                ["year", tr("Год", "Year")]
+              ].map(([view, label]) => `
+                <button
+                  class="${state.view === view ? "active" : ""}"
+                  onclick="setCalendarView('${view}')">
+                  ${label}
+                </button>
+              `).join("")}
+            </div>
+
+            <button onclick="goToday()">
+              ${tr("Сегодня", "Today")}
+            </button>
+          </div>
+        </div>
+
+        <div style="padding:0 18px 14px">
+          <select onchange="setFilter(this.value)"
+            aria-label="${tr("Категория", "Category")}">
+            <option value="">
+              ${tr("Все категории", "All categories")}
+            </option>
+            ${TYPES.map(type => `
+              <option value="${type}"
+                ${categoryFilter === type ? "selected" : ""}>
+                ${typeName(type)}
+              </option>
+            `).join("")}
+          </select>
+        </div>
+      `;
+    }
+
+    function renderDayView() {
+      const entries = [...entriesOn(selectedDate)].sort((a, b) => {
+        if (Boolean(a.allDay) !== Boolean(b.allDay)) {
+          return a.allDay ? -1 : 1;
+        }
+
+        return (a.time || "").localeCompare(b.time || "");
+      });
+
+      return `
+        <div class="day-schedule">
+          ${entries.length
+            ? entries.map(entry => `
+                <div class="agenda-row">
+                  <div class="agenda-time">
+                    ${entry.allDay
+                      ? tr("Весь день", "All day")
+                      : escapeHTML(entry.time)}
+                  </div>
+                  <div>${renderEntry(entry, selectedDate)}</div>
+                </div>
+              `).join("")
+            : `
+              <div class="empty">
+                ${tr(
+                  "На этот день пока ничего не запланировано.",
+                  "Nothing planned for this day yet."
+                )}
+              </div>
+            `
+          }
+
+          <button class="primary" onclick="openEditor()">
+            + ${tr("Добавить запись", "Add an entry")}
+          </button>
+        </div>
+      `;
+    }
+
+    function renderYearView() {
+      const year = currentMonth.getFullYear();
+      const weekdays = tr(
+        ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"],
+        ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+      );
+      const todayKey = dateKey(new Date());
+      const months = [];
+
+      for (let month = 0; month < 12; month++) {
+        const first = new Date(year, month, 1);
+        const lead = (first.getDay() + 6) % 7;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const cells = [];
+
+        for (let index = 0; index < lead; index++) {
+          cells.push("<span></span>");
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const key = dateKey(new Date(year, month, day));
+          const entries = entriesOn(key);
+
+          cells.push(`
+            <button type="button"
+              class="mini-day
+                ${key === selectedDate ? "selected" : ""}
+                ${key === todayKey ? "today" : ""}
+                ${entries.length ? "has-events" : ""}"
+              style="${entries.length
+                ? `--event-color:${COLORS[entries[0].type]}`
+                : ""}"
+              onclick="selectDay('${key}', 'day')"
+              aria-label="${escapeHTML(key)}">
+              ${day}
+            </button>
+          `);
+        }
+
+        const name = first.toLocaleDateString(locale(), {
+          month: "long"
+        });
+
+        months.push(`
+          <section class="mini-month">
+            <button type="button" class="mini-title"
+              onclick="openMonth(${year}, ${month})">
+              ${escapeHTML(name)}
+            </button>
+            <div class="mini-weekdays">
+              ${weekdays.map(day => `<span>${day}</span>`).join("")}
+            </div>
+            <div class="mini-grid">${cells.join("")}</div>
+          </section>
+        `);
+      }
+
+      return `
+        <p class="hint view-hint">
+          ${tr(
+            "Точка под числом — в этот день есть записи. Нажмите день, чтобы открыть его расписание, или название месяца, чтобы открыть месяц.",
+            "A mark under a date means that day has entries. Choose a day to open its schedule, or a month name to open that month."
+          )}
+        </p>
+        <div class="year-grid">${months.join("")}</div>
+      `;
+    }
+
+    function renderMonthView() {
       const start = new Date(currentMonth);
       start.setDate(1 - ((start.getDay() + 6) % 7));
 
@@ -1352,48 +1748,6 @@
       }
 
       return `
-        <div class="layout">
-          <section class="card calendar-card">
-            <div class="toolbar">
-              <div class="row">
-                <button onclick="changeMonth(-1)"
-                  aria-label="${tr("Предыдущий месяц", "Previous month")}">
-                  ‹
-                </button>
-
-                <h2>
-                  ${currentMonth.toLocaleDateString(locale(), {
-                    month: "long",
-                    year: "numeric"
-                  })}
-                </h2>
-
-                <button onclick="changeMonth(1)"
-                  aria-label="${tr("Следующий месяц", "Next month")}">
-                  ›
-                </button>
-              </div>
-
-              <button onclick="goToday()">
-                ${tr("Сегодня", "Today")}
-              </button>
-            </div>
-
-            <div style="padding:0 18px 14px">
-              <select onchange="setFilter(this.value)"
-                aria-label="${tr("Категория", "Category")}">
-                <option value="">
-                  ${tr("Все категории", "All categories")}
-                </option>
-                ${TYPES.map(type => `
-                  <option value="${type}"
-                    ${categoryFilter === type ? "selected" : ""}>
-                    ${typeName(type)}
-                  </option>
-                `).join("")}
-              </select>
-            </div>
-
             <div class="weekdays">
               ${tr(
                 ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"],
@@ -1402,8 +1756,17 @@
             </div>
 
             <div class="calendar-grid">${cells.join("")}</div>
-          </section>
+      `;
+    }
 
+    function renderCalendar() {
+      const body = state.view === "day"
+        ? renderDayView()
+        : state.view === "year"
+          ? renderYearView()
+          : renderMonthView();
+
+      const aside = state.view === "month" ? `
           <aside class="card">
             <h2>${formatDate(selectedDate)}</h2>
 
@@ -1434,6 +1797,15 @@
               )}
             </p>
           </aside>
+      ` : "";
+
+      return `
+        <div class="layout ${state.view === "month" ? "" : "layout-single"}">
+          <section class="card calendar-card">
+            ${renderCalendarToolbar()}
+            ${body}
+          </section>
+          ${aside}
         </div>
       `;
     }
