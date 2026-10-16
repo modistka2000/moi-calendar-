@@ -294,6 +294,29 @@
       margin-top: 8px;
     }
 
+    .day-details {
+      margin-top: 8px;
+    }
+
+    .day-label {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .day-text {
+      margin: 4px 0 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .day-details a {
+      overflow-wrap: anywhere;
+    }
+
     .year-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -441,7 +464,7 @@
       padding: 4px;
       border-left: 3px solid var(--event-color);
       border-radius: 4px;
-      background: var(--chip);
+      background: color-mix(in srgb, var(--event-color) 28%, var(--control));
       color: var(--text);
       font-size: 10px;
       overflow: hidden;
@@ -453,8 +476,11 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      padding: 15px 0;
+      padding: 15px 8px;
       border-bottom: 1px solid var(--border);
+      border-left: 3px solid var(--event-color, var(--border));
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--event-color, transparent) 16%, transparent);
     }
 
     .entry:last-child {
@@ -487,6 +513,26 @@
       margin-top: 7px;
       border-radius: 50%;
       flex-shrink: 0;
+      background: var(--event-color, var(--primary));
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 12px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .legend-item .dot {
+      margin-top: 0;
     }
 
     .completed {
@@ -778,11 +824,11 @@
     ];
 
     const COLORS = {
-      event: "#6983c9",
-      task: "#c6a05d",
-      webinar: "#a18ac8",
-      activation: "#70a38b",
-      appointment: "#cc889a"
+      event: "#3a6fe0",
+      task: "#2f9e55",
+      webinar: "#7a45c9",
+      activation: "#d64545",
+      appointment: "#e2b000"
     };
 
     const ZONES = [
@@ -1596,6 +1642,15 @@
               </option>
             `).join("")}
           </select>
+
+          <div class="legend">
+            ${TYPES.map(type => `
+              <span class="legend-item" style="--event-color:${COLORS[type]}">
+                <span class="dot" aria-hidden="true"></span>
+                ${typeName(type)}
+              </span>
+            `).join("")}
+          </div>
         </div>
       `;
     }
@@ -1619,7 +1674,7 @@
                       ? tr("Весь день", "All day")
                       : escapeHTML(entry.time)}
                   </div>
-                  <div>${renderEntry(entry, selectedDate)}</div>
+                  <div>${renderEntry(entry, selectedDate, true)}</div>
                 </div>
               `).join("")
             : `
@@ -1810,13 +1865,61 @@
       `;
     }
 
-    function renderEntry(entry, day) {
+    function safeUrl(value) {
+      const url = String(value || "").trim();
+      return /^https?:\/\//i.test(url) ? url : "";
+    }
+
+    function renderDayDetails(entry) {
+      const description = String(entry.description || "").trim();
+      const raw = String(entry.raw || "").trim();
+      const url = safeUrl(entry.url);
+      const showRaw = raw && raw !== description;
+
+      if (!description && !showRaw && !url) {
+        return `
+          <p class="day-text muted">
+            ${tr(
+              "Описание и условия пока не указаны.",
+              "Description and conditions are not added yet."
+            )}
+          </p>
+        `;
+      }
+
+      return `
+        <div class="day-details">
+          ${description ? `
+            <p class="day-label">
+              ${tr("Описание и условия", "Description and conditions")}
+            </p>
+            <p class="day-text">${escapeHTML(description)}</p>
+          ` : ""}
+
+          ${showRaw ? `
+            <p class="day-label">
+              ${tr("Исходный текст", "Source text")}
+            </p>
+            <p class="day-text">${escapeHTML(raw)}</p>
+          ` : ""}
+
+          ${url ? `
+            <p class="day-text">
+              <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">
+                ${escapeHTML(url)}
+              </a>
+            </p>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    function renderEntry(entry, day, full = false) {
       const done = (entry.done || []).includes(day);
 
       return `
-        <div class="entry">
-          <span class="dot"
-            style="background:${COLORS[entry.type]}"></span>
+        <div class="entry" style="--event-color:${COLORS[entry.type]}">
+          <span class="dot" aria-hidden="true"></span>
 
           <div class="entry-main">
             <button
@@ -1826,7 +1929,8 @@
             </button>
 
             <small>
-              ${entry.allDay
+              ${typeName(entry.type)}
+              · ${entry.allDay
                 ? tr("Весь день", "All day")
                 : escapeHTML(entry.time) +
                   (entry.end ? " – " + escapeHTML(entry.end) : "")
@@ -1834,6 +1938,8 @@
               · ${escapeHTML(entry.zone)}
               ${entry.repeat !== "none" ? " · ↻" : ""}
             </small>
+
+            ${full ? renderDayDetails(entry) : ""}
           </div>
 
           ${entry.type === "task" ? `
